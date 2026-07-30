@@ -15,6 +15,9 @@ from study_pack_generator import (
     generate_study_pack,
 )
 from transcript_parser import parse_transcript
+from database import get_study_pack_for_client, grade_quiz
+from rag_engine import query_rag
+from guardrails import check_rate_limit, sanitize_chat_query, RateLimitExceeded
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -46,10 +49,14 @@ class StudyPackHandler(BaseHTTPRequestHandler):
         if parsed_url.path == '/api/citation':
             self._get_citation(parse_qs(parsed_url.query))
             return
+        if parsed_url.path == '/api/study-pack':
+            self._get_study_pack(parse_qs(parsed_url.query))
+            return
         self._serve_static(parsed_url.path)
 
     def do_POST(self) -> None:
-        if urlparse(self.path).path != '/api/generate':
+        path = urlparse(self.path).path
+        if path not in ('/api/generate', '/api/quiz/submit', '/api/chat'):
             self._send_json(HTTPStatus.NOT_FOUND, {'error': 'Not found.'})
             return
 
@@ -78,6 +85,113 @@ class StudyPackHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if path == '/api/generate':
+            self._handle_generate(payload)
+        elif path == '/api/quiz/submit':
+            self._submit_quiz(payload)
+        elif path == '/api/chat':
+            self._chat(payload)
+
+    def _get_study_pack(self, query: dict) -> None:
+        transcript_name = query.get('transcript', [''])[0]
+        if not transcript_name:
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': 'Thiếu tham số transcript.'})
+            return
+            
+        transcript_path = TRANSCRIPT_FILES.get(transcript_name)
+        if transcript_path is None:
+            self._send_json(HTTPStatus.NOT_FOUND, {'error': 'Transcript không tồn tại.'})
+            return
+            
+        try:
+            transcript_id = f"T{transcript_name.split('-')[1]}"
+        except IndexError:
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': 'Định dạng transcript không đúng.'})
+            return
+            
+        pack = get_study_pack_for_client(transcript_id)
+        if not pack:
+            self._send_json(HTTPStatus.NOT_FOUND, {'error': 'Không tìm thấy Study Pack cho transcript này.'})
+            return
+            
+        self._send_json(HTTPStatus.OK, {
+            "status": "ok",
+            "study_pack": pack,
+            "transcript": {
+                "file_name": transcript_name,
+                "transcript_id": transcript_id,
+                "title": pack.get("transcript_title", "")
+            }
+        })
+
+    def _submit_quiz(self, payload: dict) -> None:
+        transcript_name = payload.get('transcript')
+        user_answers = payload.get('answers')
+        
+        if not transcript_name or user_answers is None:
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': 'Thiếu tham số transcript hoặc answers.'})
+            return
+            
+        if not isinstance(user_answers, list):
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': 'answers phải là một list.'})
+            return
+            
+        try:
+            transcript_id = f"T{transcript_name.split('-')[1]}"
+        except IndexError:
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': 'Định dạng transcript không đúng.'})
+            return
+            
+        grade_result = grade_quiz(transcript_id, user_answers)
+        if grade_result is None:
+            self._send_json(HTTPStatus.NOT_FOUND, {'error': 'Không tìm thấy bộ câu hỏi cho transcript này.'})
+            return
+            
+        score, detailed_results, weak_citations = grade_result
+        self._send_json(HTTPStatus.OK, {
+            "score": score,
+            "results": detailed_results,
+            "weak_citations": weak_citations
+        })
+
+    def _chat(self, payload: dict) -> None:
+        transcript_name = payload.get('transcript')
+        question = payload.get('question')
+        
+        if not transcript_name or not question:
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': 'Thiếu tham số transcript hoặc question.'})
+            return
+            
+        try:
+            transcript_id = f"T{transcript_name.split('-')[1]}"
+        except IndexError:
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': 'Định dạng transcript không đúng.'})
+            return
+            
+        # 1. Kiểm tra Rate Limit
+        session_id = self.client_address[0]
+        try:
+            check_rate_limit(session_id)
+        except RateLimitExceeded as e:
+            self._send_json(HTTPStatus.TOO_MANY_REQUESTS, {'error': str(e)})
+            return
+            
+        # 2. Kiểm tra Guardrail chống prompt injection
+        try:
+            sanitized_question = sanitize_chat_query(question)
+        except ValueError as e:
+            self._send_json(HTTPStatus.BAD_REQUEST, {'error': str(e)})
+            return
+            
+        # 3. Chạy RAG query
+        try:
+            rag_result = query_rag(sanitized_question, transcript_id)
+            self._send_json(HTTPStatus.OK, rag_result)
+        except Exception as e:
+            self.log_error("RAG query failed: %s", e)
+            self._send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {'error': 'Lỗi hệ thống RAG Reranking. Vui lòng thử lại.'})
+
+    def _handle_generate(self, payload: dict) -> None:
         transcript_name = payload.get('transcript')
         objective = payload.get('objective', 'Ôn quiz trong 10 phút')
         if not isinstance(transcript_name, str) or not isinstance(objective, str):
