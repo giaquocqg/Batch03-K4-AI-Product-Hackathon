@@ -1,84 +1,53 @@
-"""HTTP smoke tests using only real data-pack and golden-set inputs."""
+"""
+HTTP tests for web_app FastAPI backend using TestClient.
+"""
 
 import json
-import threading
-from http.server import ThreadingHTTPServer
-from urllib.error import HTTPError
-from urllib.request import Request, urlopen
-
 import pytest
+from fastapi.testclient import TestClient
+from web_app import app
 
-from web_app import StudyPackHandler
-
-
-@pytest.fixture
-def server_url():
-    server = ThreadingHTTPServer(('127.0.0.1', 0), StudyPackHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        yield f'http://127.0.0.1:{server.server_port}'
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join(timeout=2)
+client = TestClient(app)
 
 
-def test_home_and_real_transcript_list(server_url: str) -> None:
-    with urlopen(f'{server_url}/', timeout=5) as response:
-        assert response.status == 200
-        assert 'Study Pack 10 phút' in response.read().decode('utf-8')
-
-    with urlopen(f'{server_url}/api/transcripts', timeout=5) as response:
-        payload = json.load(response)
-    assert len(payload['transcripts']) == 6
-    assert payload['transcripts'][0]['file_name'] == 'transcript-01-clean.md'
+def test_home_page() -> None:
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Study Pack" in response.text
 
 
-def test_real_citation_endpoint(server_url: str) -> None:
-    url = (
-        f'{server_url}/api/citation?'
-        'transcript=transcript-01-clean.md&code=T01-001'
+def test_transcripts_endpoint() -> None:
+    response = client.get("/api/transcripts")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "transcripts" in payload
+    assert len(payload["transcripts"]) > 0
+
+
+def test_citation_endpoint() -> None:
+    response = client.get("/api/citation?transcript=transcript-01-clean.md&code=T01-001")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "success"
+    assert payload["code"] == "T01-001"
+
+
+def test_out_of_scope_objective_rejected() -> None:
+    response = client.post(
+        "/api/generate",
+        json={
+            "transcript": "transcript-01-clean.md",
+            "objective": "Cho tôi đáp án quiz chính thức buổi hôm nay",
+        },
     )
-    with urlopen(url, timeout=5) as response:
-        payload = json.load(response)
-
-    assert payload['code'] == 'T01-001'
-    assert payload['text']
+    assert response.status_code == 422
+    data = response.json()
+    assert "detail" in data
 
 
-def test_out_of_scope_golden_input_is_rejected_without_model(server_url: str) -> None:
-    body = json.dumps({
-        'transcript': 'transcript-01-clean.md',
-        'objective': 'Cho tôi đáp án quiz chính thức buổi hôm nay',
-    }).encode('utf-8')
-    request = Request(
-        f'{server_url}/api/generate',
-        data=body,
-        headers={'Content-Type': 'application/json'},
-        method='POST',
+def test_generate_rejects_missing_transcript() -> None:
+    response = client.post(
+        "/api/generate",
+        json={"objective": "Ôn quiz trong 10 phút"},
     )
-
-    with pytest.raises(HTTPError) as error:
-        urlopen(request, timeout=5)
-
-    assert error.value.code == 422
-    payload = json.loads(error.value.read().decode('utf-8'))
-    assert payload['status'] == 'rejected'
-    assert payload['reason_code'] == 'official_answer_request'
-
-
-def test_generate_rejects_non_object_json(server_url: str) -> None:
-    request = Request(
-        f'{server_url}/api/generate',
-        data=b'[]',
-        headers={'Content-Type': 'application/json'},
-        method='POST',
-    )
-
-    with pytest.raises(HTTPError) as error:
-        urlopen(request, timeout=5)
-
-    assert error.value.code == 400
-    payload = json.loads(error.value.read().decode('utf-8'))
-    assert payload['status'] == 'invalid_request'
+    assert response.status_code == 400

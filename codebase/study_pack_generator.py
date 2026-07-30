@@ -29,7 +29,7 @@ from schema import (
 
 
 MODEL_BY_PROVIDER = {
-    'gemini': 'gemini-2.0-flash',
+    'gemini': 'gemini-3.5-flash-lite',
     'openai': 'gpt-4o-mini',
 }
 GENERATION_TEMPERATURE = 0.3

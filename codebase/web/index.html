@@ -3,105 +3,294 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Tạo Study Pack 10 phút có citation từ transcript bài giảng.">
-  <title>Study Pack 10 phút</title>
+  <meta name="description" content="10 mins Study Pack — AI Agent Platform cho Giảng viên & Học viên với quy trình HITL Review và Vector DB Sync.">
+  <title>10 mins Study Pack — Teacher Workspace & AI Agent Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header class="masthead">
-    <a class="wordmark" href="/" aria-label="Study Pack home">SP<span>10</span></a>
-    <p>Active recall, có nguồn để kiểm tra</p>
-    <span class="build-label">CP2 / REAL API PATH</span>
+
+  <!-- Top Navigation & Role Switcher -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="logo-icon">10M</div>
+      <div class="brand-text">
+        <span class="brand-title">Study Pack 10M</span>
+        <span class="brand-sub">AI Agent Platform & HITL</span>
+      </div>
+    </div>
+    
+    <nav class="role-tabs">
+      <button id="tab-teacher" class="tab-btn active" type="button" onclick="switchTab('teacher')">
+        <span class="tab-icon">👩‍🏫</span>
+        <span>Teacher Workspace (Giảng viên)</span>
+      </button>
+      <button id="tab-student" class="tab-btn" type="button" onclick="switchTab('student')">
+        <span class="tab-icon">🎓</span>
+        <span>Student Pack (Học viên)</span>
+      </button>
+    </nav>
   </header>
 
-  <main>
-    <section class="hero" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">Một buổi học. Mười phút. Năm câu tự nhớ.</p>
-        <h1 id="page-title">Đừng đọc lại.<br><em>Hãy tự nhớ lại.</em></h1>
+  <main class="container">
+
+    <!-- ================= TEACHER WORKSPACE ================= -->
+    <section id="teacher-view" class="view-section active">
+      
+      <!-- Teacher Hero Banner -->
+      <div class="hero-card teacher-hero">
+        <div class="hero-badge">Teacher HITL Workflow</div>
+        <h1>Hệ Thống Biên Soạn Bài Giảng 10 Phút & Tạo Đề Trắc Nghiệm AI</h1>
+        <p>Tự động chuyển đổi Slide PDF + Teacher Notes thành Bài giảng 10 phút, tạo 10 câu trắc nghiệm chuẩn Bloom, kiểm duyệt HITL và đồng bộ Vector DB.</p>
       </div>
-      <p class="hero-note">AI chỉ chọn và nén nội dung từ transcript đã chọn. Mỗi ý và đáp án phải mở được đoạn nguồn; thiếu căn cứ thì không hiện.</p>
-    </section>
 
-    <section class="workbench" aria-labelledby="setup-title">
-      <div class="step-index">01</div>
-      <div class="setup-copy">
-        <p class="eyebrow">Thiết lập lượt ôn</p>
-        <h2 id="setup-title">Chọn đúng buổi học</h2>
-        <p>Hiện chỉ hỗ trợ lát cắt ôn quiz trong 10 phút.</p>
-      </div>
-      <form id="generate-form">
-        <label for="transcript-select">Transcript bài giảng</label>
-        <select id="transcript-select" name="transcript" required>
-          <option value="">Đang tải danh sách...</option>
-        </select>
-        <label for="objective">Mục tiêu</label>
-        <input id="objective" name="objective" value="Ôn quiz trong 10 phút" readonly>
-        <button class="primary-button" type="submit">
-          <span>Tạo Study Pack</span><span aria-hidden="true">↗</span>
-        </button>
-      </form>
-    </section>
-
-    <section id="status-panel" class="status-panel" hidden aria-live="polite"></section>
-
-    <section id="result" class="result" hidden aria-labelledby="result-title">
-      <div class="result-heading">
-        <div>
-          <p class="eyebrow">Study Pack đã kiểm nguồn</p>
-          <h2 id="result-title">10 phút bắt đầu từ đây</h2>
+      <!-- Step 1: Upload & Process Form -->
+      <div class="card form-card">
+        <div class="card-header">
+          <div class="step-badge">Bước 1</div>
+          <div>
+            <h2>Upload Slide PDF & Ghi Chú Bài Giảng</h2>
+            <p>Tải lên Slide PDF và ghi chú để AI Enrichment & MCQ Agents khởi chạy Pipeline.</p>
+          </div>
         </div>
-        <button id="regenerate" class="text-button" type="button">Tạo lại ↻</button>
+
+        <form id="teacher-upload-form" class="teacher-grid">
+          <div class="form-group">
+            <label for="lesson-code">Mã bài học (Lesson Code) <span class="required">*</span></label>
+            <input type="text" id="lesson-code" placeholder="Ví dụ: DAY_04" required value="DAY_04">
+          </div>
+
+          <div class="form-group">
+            <label for="lesson-title">Tiêu đề bài học</label>
+            <input type="text" id="lesson-title" placeholder="Ví dụ: AI & LLM Foundation trong 10 phút" value="AI & LLM Foundation 2026">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="pdf-file">File Slide PDF bài giảng (.pdf) <span class="required">*</span></label>
+            <div class="file-drop-area" id="file-drop-zone">
+              <span class="drop-icon">📄</span>
+              <span class="drop-text">Kéo thả file PDF vào đây hoặc <strong>Chọn file từ máy tính</strong></span>
+              <input type="file" id="pdf-file" accept=".pdf" required>
+            </div>
+            <div id="file-selected-name" class="file-selected-info" hidden></div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="teacher-notes">Speaker / Lecture Notes (Ghi chú bài giảng của GV)</label>
+            <textarea id="teacher-notes" rows="4" placeholder="Nhập ghi chú giảng viên, trọng tâm cần nhấn mạnh hoặc ví dụ bài giảng..."></textarea>
+          </div>
+
+          <div class="form-actions full-width">
+            <button type="submit" id="btn-run-pipeline" class="btn btn-primary btn-lg">
+              <span>🚀 Chạy AI Pipeline & Tạo DRAFT</span>
+            </button>
+          </div>
+        </form>
       </div>
 
-      <div id="warnings" class="warnings" hidden></div>
+      <!-- Processing Progress Banner -->
+      <div id="teacher-progress" class="card progress-card" hidden>
+        <div class="spinner"></div>
+        <div class="progress-details">
+          <h3 id="progress-title">Đang chạy AI Pipeline...</h3>
+          <p id="progress-desc">Đang đọc Slide PDF ➔ Chạy Enrichment Agent ➔ Sinh 10 câu trắc nghiệm MCQ...</p>
+        </div>
+      </div>
 
-      <section class="pack-section">
-        <div class="section-label"><span>02</span><h3>Ý trọng tâm</h3></div>
-        <ol id="key-points" class="key-points"></ol>
-      </section>
+      <!-- Step 2 & 3: HITL Review & Editing Screen -->
+      <div id="hitl-workspace" class="hitl-container" hidden>
+        
+        <!-- Summary & Keywords Edit Card -->
+        <div class="card hitl-summary-card">
+          <div class="card-header border-bottom">
+            <div class="step-badge edit-badge">Bước 2 - HITL Review</div>
+            <div>
+              <h2>Chỉnh Sửa Bài Giảng Tóm Tắt & Từ Khóa</h2>
+              <p>Giảng viên kiểm duyệt và chỉnh sửa trực tiếp nội dung bài giảng 10 phút trước khi xuất bản.</p>
+            </div>
+            <div class="version-tag" id="hitl-version-badge">Version 1 (DRAFT)</div>
+          </div>
 
-      <section class="pack-section keyword-section">
-        <div class="section-label"><span>03</span><h3>Keyword cần nhớ</h3></div>
-        <div id="keywords" class="keywords"></div>
-      </section>
+          <div class="hitl-form">
+            <div class="form-group">
+              <label for="hitl-title">Tiêu đề bài học chính thức</label>
+              <input type="text" id="hitl-title" class="input-lg">
+            </div>
 
-      <section class="pack-section">
-        <div class="section-label"><span>04</span><h3>Active recall</h3></div>
-        <div id="questions" class="questions"></div>
-      </section>
+            <div class="form-group">
+              <label for="hitl-summary">
+                Bài giảng tóm tắt 10 phút (300 - 500 từ)
+                <span id="word-count-badge" class="badge">0 từ</span>
+              </label>
+              <textarea id="hitl-summary" rows="12" class="summary-editor"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="hitl-keywords">Từ khóa trọng tâm (Keywords - cách nhau bằng dấu phẩy)</label>
+              <input type="text" id="hitl-keywords" placeholder="LLM, Transformer, Self-Attention, Token Economy">
+            </div>
+          </div>
+        </div>
+
+        <!-- 10 MCQs Review & Approve List -->
+        <div class="card hitl-mcq-card">
+          <div class="card-header border-bottom">
+            <div>
+              <h2>Kiểm Duyệt 10 Câu Hỏi Trắc Nghiệm (MCQ Review)</h2>
+              <p>Giảng viên có thể Duyệt (Approve), Chỉnh sửa từng câu hoặc Yêu cầu AI Sinh lại (Regenerate).</p>
+            </div>
+            <div class="mcq-stats">
+              <span id="approved-count" class="badge badge-success">0/10 Đã duyệt</span>
+            </div>
+          </div>
+
+          <div id="mcq-list-container" class="mcq-grid">
+            <!-- MCQ cards injected by JS -->
+          </div>
+        </div>
+
+        <!-- Step 4: Publish & Sync Vector DB Action Bar -->
+        <div class="publish-bar card">
+          <div class="publish-info">
+            <h3>Sẵn sàng xuất bản bài học?</h3>
+            <p>Hệ thống sẽ lưu chính thức vào CSDL, tăng `version` nếu là bản cập nhật, và tự động xóa/ghi đè Vector Embeddings cũ vào Vector DB (ChromaDB).</p>
+          </div>
+          <div class="publish-actions">
+            <button type="button" id="btn-save-draft" class="btn btn-secondary" onclick="saveDraftReview()">
+              <span>💾 Lưu Chỉnh Sửa DRAFT</span>
+            </button>
+            <button type="button" id="btn-publish" class="btn btn-success btn-lg" onclick="publishLesson()">
+              <span>✅ Approve & Publish (Sync Vector DB)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Publish Result Alert -->
+        <div id="publish-alert" class="alert alert-success" hidden>
+          <div class="alert-icon">🎉</div>
+          <div>
+            <h4 id="publish-alert-title">Xuất bản bài học thành công!</h4>
+            <p id="publish-alert-desc">Dữ liệu đã ghi vào CSDL và đồng bộ Vector Embeddings vào ChromaDB.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Published Lessons Management -->
+      <div class="card list-card">
+        <div class="card-header">
+          <h2>Danh Sách Bài Học Đã Xuất Bản</h2>
+          <button class="btn btn-sm btn-outline" onclick="loadTeacherLessons()">🔄 Làm mới</button>
+        </div>
+        <div id="lessons-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã bài học</th>
+                <th>Tiêu đề</th>
+                <th>Version</th>
+                <th>Trạng thái</th>
+                <th>Số câu MCQ</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="teacher-lessons-tbody">
+              <tr><td colspan="6" class="text-center">Đang tải danh sách bài học...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </section>
+
+
+    <!-- ================= STUDENT PACK WORKSPACE ================= -->
+    <section id="student-view" class="view-section">
+      
+      <div class="hero-card student-hero">
+        <div class="hero-badge">Student Active Recall</div>
+        <h1>Luyện Tập & Ôn Tập Bài Giảng 10 Phút</h1>
+        <p>Chọn bài học để đọc tóm tắt trọng tâm và tự luyện tập các câu hỏi active recall kèm trích dẫn nguồn.</p>
+      </div>
+
+      <div class="card form-card">
+        <form id="student-generate-form">
+          <div class="form-group">
+            <label for="transcript-select">Chọn bài giảng / Transcript</label>
+            <select id="transcript-select" name="transcript" required>
+              <option value="">Đang tải danh sách...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="objective">Mục tiêu ôn tập</label>
+            <input type="text" id="objective" name="objective" value="Ôn quiz trong 10 phút" readonly>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <span>Tạo Study Pack</span> ↗
+          </button>
+        </form>
+      </div>
+
+      <div id="student-status" class="status-panel" hidden></div>
+
+      <div id="student-result" class="result" hidden>
+        <div class="result-heading">
+          <h2>Study Pack 10 Phút</h2>
+          <button id="regenerate" class="btn btn-outline" type="button">Tạo lại ↻</button>
+        </div>
+
+        <div id="warnings" class="warnings" hidden></div>
+
+        <section class="pack-section">
+          <h3>📌 Ý Trọng Tâm</h3>
+          <ol id="key-points" class="key-points"></ol>
+        </section>
+
+        <section class="pack-section">
+          <h3>🏷️ Keyword Cần Ghi Nhớ</h3>
+          <div id="keywords" class="keywords"></div>
+        </section>
+
+        <section class="pack-section">
+          <h3>💡 Active Recall & Trắc Nghiệm</h3>
+          <div id="questions" class="questions"></div>
+        </section>
+      </div>
+
+    </section>
+
   </main>
 
-  <dialog id="citation-dialog">
+  <!-- Citation Dialog -->
+  <dialog id="citation-dialog" class="custom-dialog">
     <button id="close-dialog" class="dialog-close" type="button" aria-label="Đóng">×</button>
-    <p class="eyebrow">Đoạn nguồn</p>
-    <h2 id="citation-code">Citation</h2>
-    <p id="citation-text"></p>
-    <p id="citation-warning" class="citation-warning" hidden>Nguồn có đoạn [không nghe rõ], cần kiểm tra bản gốc.</p>
+    <div class="dialog-content">
+      <div class="dialog-badge">Trích dẫn nguồn bài giảng</div>
+      <h3 id="citation-code">Citation</h3>
+      <div id="citation-text" class="citation-body"></div>
+      <p id="citation-warning" class="citation-warning" hidden>⚠️ Nguồn có đoạn [không nghe rõ], cần kiểm tra bản gốc.</p>
+    </div>
   </dialog>
 
-  <template id="question-template">
-    <article class="question-card">
-      <div class="question-number"></div>
-      <h4></h4>
-      <button class="reveal-button" type="button">Hiện đáp án</button>
-      <div class="answer" hidden>
-        <p></p>
-        <div class="citation-list"></div>
-        <div class="feedback-row">
-          <span>Đáp án chưa ổn?</span>
-          <button class="feedback-button" type="button">Chưa đúng</button>
-        </div>
-        <div class="feedback-reasons" hidden>
-          <button type="button">Sai nguồn</button>
-          <button type="button">Không trọng tâm</button>
-          <button type="button">Quá khó</button>
-          <small>Phản hồi chỉ được giữ trong phiên prototype này.</small>
-        </div>
+  <!-- Single MCQ Regenerate Modal -->
+  <dialog id="regen-mcq-dialog" class="custom-dialog">
+    <button type="button" class="dialog-close" onclick="document.querySelector('#regen-mcq-dialog').close()">×</button>
+    <div class="dialog-content">
+      <h3>Tạo Lại Câu Hỏi Trắc Nghiệm này bằng AI</h3>
+      <p>Nhập chỉ dẫn thêm cho AI nếu muốn thay đổi góc độ câu hỏi (ví dụ: "Tạo câu hỏi độ khó cao hơn" hoặc "Tập trung vào ví dụ thực tế").</p>
+      <input type="hidden" id="regen-q-id">
+      <div class="form-group">
+        <label for="regen-instruction">Yêu cầu bổ sung (Tùy chọn)</label>
+        <textarea id="regen-instruction" rows="3" placeholder="Nhập chỉ dẫn chi tiết..."></textarea>
       </div>
-    </article>
-  </template>
+      <div class="dialog-actions">
+        <button type="button" class="btn btn-secondary" onclick="document.querySelector('#regen-mcq-dialog').close()">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="confirmRegenerateMcq()">🚀 Sinh lại câu này</button>
+      </div>
+    </div>
+  </dialog>
 
   <script src="/app.js" defer></script>
 </body>

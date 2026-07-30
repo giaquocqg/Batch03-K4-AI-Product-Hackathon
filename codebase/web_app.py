@@ -1,14 +1,28 @@
-"""Local clickable Study Pack flow backed by the real generator."""
+"""
+10 mins Study Pack — Full-Stack FastAPI Backend.
+Integrates Teacher Flow (Slide Upload, HITL Review, MCQ Gen, Publish & Vector Sync)
+and Student Flow (Study Pack generation & Citation viewer).
+"""
 
-import argparse
 import json
+import os
 import sys
-import threading
-from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
 
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+
+# Add codebase path
+CODEBASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = CODEBASE_DIR.parent
+
+sys.path.insert(0, str(CODEBASE_DIR))
+
+from database import init_db
+from teacher_router import router as teacher_router
 from study_pack_generator import (
     MissingAPIKeyError,
     UnsupportedObjectiveError,
@@ -16,243 +30,147 @@ from study_pack_generator import (
 )
 from transcript_parser import parse_transcript
 
+# Initialize DB tables
+init_db()
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-WEB_ROOT = Path(__file__).resolve().parent / 'web'
-TRANSCRIPT_ROOT = REPO_ROOT / 'data' / 'vlearn-pack' / 'transcript'
-TRACE_ROOT = REPO_ROOT / 'codebase' / 'traces'
-TRANSCRIPT_FILES = {
-    path.name: path
-    for path in sorted(TRANSCRIPT_ROOT.glob('transcript-??-clean.md'))
-}
-STATIC_TYPES = {
-    '.html': 'text/html; charset=utf-8',
-    '.css': 'text/css; charset=utf-8',
-    '.js': 'application/javascript; charset=utf-8',
-}
-GENERATION_SLOT = threading.BoundedSemaphore(value=1)
+app = FastAPI(
+    title="10 mins Study Pack API",
+    description="AI-Powered Study Pack Platform with Teacher HITL Flow and Student Study Flow",
+    version="2.0.0",
+)
 
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class StudyPackHandler(BaseHTTPRequestHandler):
-    """Serve static assets and the narrow Study Pack JSON API."""
+# Mount Routers
+app.include_router(teacher_router)
 
-    server_version = 'StudyPack/1.0'
+# Directories
+UPLOADS_DIR = CODEBASE_DIR / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+WEB_DIR = CODEBASE_DIR / "web"
+TRANSCRIPT_DIR = REPO_ROOT / "data" / "vlearn-pack" / "transcript"
 
-    def do_GET(self) -> None:
-        parsed_url = urlparse(self.path)
-        if parsed_url.path == '/api/transcripts':
-            self._list_transcripts()
-            return
-        if parsed_url.path == '/api/citation':
-            self._get_citation(parse_qs(parsed_url.query))
-            return
-        self._serve_static(parsed_url.path)
-
-    def do_POST(self) -> None:
-        if urlparse(self.path).path != '/api/generate':
-            self._send_json(HTTPStatus.NOT_FOUND, {'error': 'Not found.'})
-            return
-
-        content_type = self.headers.get_content_type()
-        if content_type != 'application/json':
-            self._send_json(
-                HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
-                {
-                    'status': 'invalid_request',
-                    'message': 'Content-Type must be application/json.',
-                },
-            )
-            return
-
-        try:
-            content_length = int(self.headers.get('Content-Length', '0'))
-            if content_length <= 0 or content_length > 10_000:
-                raise ValueError('Request body must be between 1 and 10000 bytes.')
-            payload = json.loads(self.rfile.read(content_length))
-            if not isinstance(payload, dict):
-                raise ValueError('Request body must be a JSON object.')
-        except (ValueError, json.JSONDecodeError) as error:
-            self._send_json(
-                HTTPStatus.BAD_REQUEST,
-                {'status': 'invalid_request', 'message': str(error)},
-            )
-            return
-
-        transcript_name = payload.get('transcript')
-        objective = payload.get('objective', 'Ôn quiz trong 10 phút')
-        if not isinstance(transcript_name, str) or not isinstance(objective, str):
-            self._send_json(
-                HTTPStatus.BAD_REQUEST,
-                {
-                    'status': 'invalid_request',
-                    'message': 'transcript and objective must be strings.',
-                },
-            )
-            return
-        transcript_path = TRANSCRIPT_FILES.get(transcript_name)
-        if transcript_path is None:
-            self._send_json(
-                HTTPStatus.UNPROCESSABLE_ENTITY,
-                {
-                    'status': 'needs_input',
-                    'message': 'Hãy chọn một transcript trong danh sách.',
-                },
-            )
-            return
-
-        if not GENERATION_SLOT.acquire(blocking=False):
-            self._send_json(
-                HTTPStatus.TOO_MANY_REQUESTS,
-                {
-                    'status': 'busy',
-                    'message': 'Một lượt tạo khác đang chạy. Hãy thử lại sau.',
-                },
-            )
-            return
-
-        try:
-            transcript = parse_transcript(str(transcript_path))
-            study_pack, metadata = generate_study_pack(
-                transcript=transcript,
-                objective=objective,
-                trace_dir=str(TRACE_ROOT),
-            )
-        except UnsupportedObjectiveError as error:
-            self._send_json(
-                HTTPStatus.UNPROCESSABLE_ENTITY,
-                {
-                    'status': 'rejected',
-                    'reason_code': error.code,
-                    'message': error.user_message,
-                },
-            )
-            return
-        except MissingAPIKeyError as error:
-            self._send_json(
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                {'status': 'configuration_error', 'message': str(error)},
-            )
-            return
-        except ValueError as error:
-            self._send_json(
-                HTTPStatus.BAD_GATEWAY,
-                {'status': 'model_output_error', 'message': str(error)},
-            )
-            return
-        except Exception as error:
-            self.log_error('Generation failed: %s', error)
-            self._send_json(
-                HTTPStatus.BAD_GATEWAY,
-                {
-                    'status': 'provider_error',
-                    'message': 'Model provider failed. Check the server log and trace.',
-                },
-            )
-            return
-        finally:
-            GENERATION_SLOT.release()
-
-        self._send_json(
-            HTTPStatus.OK,
-            {
-                'status': metadata['status'],
-                'study_pack': study_pack,
-                'metadata': {
-                    'warnings': metadata['warnings'],
-                    'trace_id': metadata['trace_id'],
-                    'validation': metadata['validation'],
-                    'removed_items': metadata['removed_items'],
-                },
-                'transcript': {
-                    'file_name': transcript_name,
-                    'title': transcript.title,
-                    'transcript_id': f'T{transcript.transcript_id}',
-                },
-            },
-        )
-
-    def _list_transcripts(self) -> None:
-        transcripts = []
-        for file_name, path in TRANSCRIPT_FILES.items():
-            transcript = parse_transcript(str(path))
-            transcripts.append({
-                'file_name': file_name,
-                'transcript_id': f'T{transcript.transcript_id}',
-                'title': transcript.title,
-                'segments': transcript.total_segments,
-                'unclear_markers': transcript.unclear_marker_count,
-            })
-        self._send_json(HTTPStatus.OK, {'transcripts': transcripts})
-
-    def _get_citation(self, query: dict) -> None:
-        transcript_name = query.get('transcript', [''])[0]
-        citation_code = query.get('code', [''])[0]
-        transcript_path = TRANSCRIPT_FILES.get(transcript_name)
-        if transcript_path is None:
-            self._send_json(HTTPStatus.NOT_FOUND, {'error': 'Transcript not found.'})
-            return
-
-        transcript = parse_transcript(str(transcript_path))
-        segment = transcript.get_segment(citation_code)
-        if segment is None or segment.is_activity:
-            self._send_json(HTTPStatus.NOT_FOUND, {'error': 'Citation not found.'})
-            return
-
-        self._send_json(
-            HTTPStatus.OK,
-            {
-                'code': segment.code,
-                'text': segment.text,
-                'has_unclear': segment.has_unclear,
-                'line_number': segment.line_number,
-            },
-        )
-
-    def _serve_static(self, request_path: str) -> None:
-        relative_path = 'index.html' if request_path == '/' else request_path.lstrip('/')
-        file_path = (WEB_ROOT / relative_path).resolve()
-        try:
-            file_path.relative_to(WEB_ROOT.resolve())
-        except ValueError:
-            self.send_error(HTTPStatus.NOT_FOUND)
-            return
-        if not file_path.is_file() or file_path.suffix not in STATIC_TYPES:
-            self.send_error(HTTPStatus.NOT_FOUND)
-            return
-
-        content = file_path.read_bytes()
-        self.send_response(HTTPStatus.OK)
-        self.send_header('Content-Type', STATIC_TYPES[file_path.suffix])
-        self.send_header('Content-Length', str(len(content)))
-        self.end_headers()
-        self.wfile.write(content)
-
-    def _send_json(self, status: HTTPStatus, payload: dict) -> None:
-        content = json.dumps(payload, ensure_ascii=False).encode('utf-8')
-        self.send_response(status)
-        self.send_header('Content-Type', 'application/json; charset=utf-8')
-        self.send_header('Content-Length', str(len(content)))
-        self.end_headers()
-        self.wfile.write(content)
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description='Run the local Study Pack web app.')
-    parser.add_argument('--port', default=8000, type=int)
-    args = parser.parse_args()
+# --- Student Flow Legacy API Endpoints ---
 
-    host = '127.0.0.1'
-    server = ThreadingHTTPServer((host, args.port), StudyPackHandler)
-    print(f'Study Pack running at http://{host}:{args.port}')
+@app.get("/api/transcripts")
+async def list_transcripts():
+    """List available transcript files for Student Flow."""
+    files = sorted(TRANSCRIPT_DIR.glob("transcript-??-clean.md"))
+    return {"transcripts": [f.name for f in files]}
+
+
+@app.post("/api/generate")
+async def generate_student_study_pack(request: Request):
+    """Generate 10-minute Study Pack from transcript for Student Flow."""
     try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        server.server_close()
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Request body must be valid JSON.",
+        )
+
+    transcript_name = payload.get("transcript")
+    objective = payload.get("objective", "Ôn quiz trong 10 phút")
+
+    if not transcript_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Hãy chọn một transcript trong danh sách.",
+        )
+
+    transcript_path = TRANSCRIPT_DIR / transcript_name
+    if not transcript_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Không tìm thấy transcript: {transcript_name}",
+        )
+
+    try:
+        parsed = parse_transcript(transcript_path)
+        study_pack, metadata = generate_study_pack(
+            transcript=parsed,
+            objective=objective,
+        )
+        return {
+            "status": "success",
+            "study_pack": study_pack,
+            "metadata": metadata,
+        }
+    except UnsupportedObjectiveError as err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(err),
+        )
+    except MissingAPIKeyError as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(err),
+        )
+    except Exception as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi tạo Study Pack: {str(err)}",
+        )
 
 
-if __name__ == '__main__':
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
-    main()
+@app.get("/api/citation")
+async def get_citation(transcript: str, code: str):
+    """Get specific citation text segment for Student Flow."""
+    transcript_path = TRANSCRIPT_DIR / transcript
+    if not transcript_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File transcript không tồn tại.",
+        )
+
+    parsed = parse_transcript(transcript_path)
+    for seg in parsed.segments:
+        if seg.code == code:
+            return {
+                "status": "success",
+                "code": seg.code,
+                "text": seg.text,
+                "has_unclear": seg.has_unclear,
+                "is_activity": seg.is_activity,
+            }
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Không tìm thấy citation {code}",
+    )
+
+
+# --- Serve Frontend Static Files ---
+
+@app.get("/{file_path:path}")
+async def serve_frontend(file_path: str):
+    """Serve frontend static files (index.html, styles.css, app.js, etc.)."""
+    if not file_path or file_path == "/":
+        file_path = "index.html"
+    
+    target_path = WEB_DIR / file_path
+    if target_path.exists() and target_path.is_file():
+        return FileResponse(target_path)
+    
+    # Default fallback to index.html
+    index_path = WEB_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    
+    raise HTTPException(status_code=404, detail="File not found.")
+
+
+if __name__ == "__main__":
+    print("🚀 10 mins Study Pack FastAPI server starting at http://127.0.0.1:8000")
+    uvicorn.run("web_app:app", host="127.0.0.1", port=8000, reload=True)
