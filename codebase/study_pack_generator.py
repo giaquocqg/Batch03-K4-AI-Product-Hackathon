@@ -119,6 +119,28 @@ USER_PROMPT = """Mục tiêu: {objective}
 Hãy tạo Study Pack JSON theo đúng quy tắc đã nêu. Chỉ trả về JSON, không thêm giải thích."""
 
 
+def _load_env_file() -> None:
+    """Load key-value pairs from .env into os.environ if not already present."""
+    candidates = [
+        Path('.env'),
+        Path('codebase/.env'),
+        Path(__file__).parent / '.env',
+        Path(__file__).parent.parent / '.env',
+    ]
+    for env_path in candidates:
+        if env_path.is_file():
+            try:
+                for line in env_path.read_text(encoding='utf-8').splitlines():
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        k, v = k.strip(), v.strip().strip("'\"")
+                        if k and k not in os.environ:
+                            os.environ[k] = v
+            except Exception:
+                pass
+
+
 def _get_api_provider() -> Tuple[str, str]:
     """Detect available API key from environment.
 
@@ -128,6 +150,7 @@ def _get_api_provider() -> Tuple[str, str]:
     Raises:
         MissingAPIKeyError: If no API key is found.
     """
+    _load_env_file()
     google_key = os.environ.get('GOOGLE_API_KEY', '').strip()
     openai_key = os.environ.get('OPENAI_API_KEY', '').strip()
 
