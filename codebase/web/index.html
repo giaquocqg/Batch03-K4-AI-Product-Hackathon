@@ -3,101 +3,226 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Tạo Study Pack 10 phút có citation từ transcript bài giảng.">
-  <title>Study Pack 10 phút</title>
+  <meta name="description" content="Hệ thống ôn luyện thông minh: Xem tóm tắt bài giảng, làm 10 câu trắc nghiệm chuẩn hóa, chấm điểm lỗ hổng kiến thức và hỏi đáp với RAG Chatbot có trích nguồn.">
+  <title>Study Pack 10 phút & Trợ lý RAG Chatbot</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+
   <header class="masthead">
-    <a class="wordmark" href="/" aria-label="Study Pack home">SP<span>10</span></a>
-    <a class="masthead-cta" href="#setup">Bắt đầu ôn <span aria-hidden="true">↓</span></a>
+    <a class="wordmark" href="/" aria-label="Trang chủ Study Pack">SP<span>10</span> & Chatbot</a>
   </header>
 
   <main>
-    <section class="hero" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">Một buổi học. Mười phút. Năm câu tự nhớ.</p>
-        <h1 id="page-title">Đừng đọc lại.<br><em>Hãy tự nhớ lại.</em></h1>
-      </div>
-      <p class="hero-note">AI chỉ chọn và nén nội dung từ transcript đã chọn. Mỗi ý và đáp án phải mở được đoạn nguồn; thiếu căn cứ thì không hiện.</p>
-    </section>
+    <!-- SCREEN 1: SETUP ROOM -->
+    <div id="screen-setup" class="view-screen active">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Ôn trọng tâm · Làm trắc nghiệm · Trợ lý hỏi đáp</p>
+          <h1 id="page-title">Đừng đọc lại.<br><em>Hãy kiểm tra lại.</em></h1>
+        </div>
+        <p class="hero-note">Chọn bài học để ôn tập nhanh 5 ý trọng tâm và làm ngay quiz 10 câu trắc nghiệm. Sau khi nộp bài, trợ lý Chatbot RAG sẽ xuất hiện giúp giải đáp thắc mắc.</p>
+      </section>
 
-    <section id="setup" class="workbench" aria-labelledby="setup-title">
-      <div class="step-index">01</div>
-      <div class="setup-copy">
-        <p class="eyebrow">Thiết lập lượt ôn</p>
-        <h2 id="setup-title">Chọn đúng buổi học</h2>
-        <p>Hiện chỉ hỗ trợ lát cắt ôn quiz trong 10 phút.</p>
-      </div>
-      <form id="generate-form">
-        <label for="transcript-select">Transcript bài giảng</label>
-        <select id="transcript-select" name="transcript" required>
-          <option value="">Đang tải danh sách...</option>
-        </select>
-        <label for="objective">Mục tiêu</label>
-        <input id="objective" name="objective" value="Ôn quiz trong 10 phút" readonly>
-        <button class="primary-button" type="submit">
-          <span>Tạo Study Pack</span><span aria-hidden="true">↗</span>
-        </button>
-      </form>
-    </section>
+      <section id="setup" class="workbench" aria-labelledby="setup-title">
+        <div class="step-index">01</div>
+        <div class="setup-copy">
+          <p class="eyebrow">Thiết lập lượt ôn</p>
+          <h2 id="setup-title">Chọn đúng buổi học</h2>
+          <p>Hệ thống sẽ tải tóm tắt bài học cùng bộ 10 câu hỏi trắc nghiệm đã duyệt.</p>
+        </div>
+        <form id="generate-form">
+          <label for="transcript-select">Chọn bài học</label>
+          <select id="transcript-select" name="transcript" required>
+            <option value="">Đang tải danh sách bài học...</option>
+          </select>
+          <button class="primary-button" type="submit" id="load-pack-btn">
+            <span>Bắt đầu ôn tập</span><span aria-hidden="true">↗</span>
+          </button>
+        </form>
+      </section>
+    </div>
 
+    <!-- STATUS PANEL (shared across views) -->
     <section id="status-panel" class="status-panel" hidden aria-live="polite"></section>
 
-    <section id="result" class="result" hidden aria-labelledby="result-title">
-      <div class="result-heading">
-        <div>
-          <p class="eyebrow">Study Pack đã kiểm nguồn</p>
-          <h2 id="result-title">10 phút bắt đầu từ đây</h2>
+    <!-- SCREEN 2: STUDY PACK REVIEW -->
+    <div id="screen-review" class="view-screen" hidden>
+      <div class="screen-header">
+        <button class="back-to-setup-btn" type="button">← Chọn bài học khác</button>
+        <div class="screen-title-area">
+          <h2 class="screen-title">Nội dung ôn tập</h2>
         </div>
-        <button id="regenerate" class="text-button" type="button">Tạo lại ↻</button>
       </div>
 
-      <div id="warnings" class="warnings" hidden></div>
-
+      <!-- 5 ý trọng tâm -->
       <section class="pack-section">
         <div class="section-label"><span>02</span><h3>Ý trọng tâm</h3></div>
         <ol id="key-points" class="key-points"></ol>
       </section>
 
+      <!-- Keywords -->
       <section class="pack-section keyword-section">
         <div class="section-label"><span>03</span><h3>Keyword cần nhớ</h3></div>
         <div id="keywords" class="keywords"></div>
       </section>
 
-      <section class="pack-section">
-        <div class="section-label"><span>04</span><h3>Active recall</h3></div>
-        <div id="questions" class="questions"></div>
-      </section>
-    </section>
+      <!-- Button to transition to Screen 3 -->
+      <div class="action-bar">
+        <button class="primary-button start-quiz-btn" id="start-quiz-btn" type="button">
+          <span>Làm Quiz Trắc Nghiệm (10 phút)</span><span aria-hidden="true">⏱️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: VIRTUAL EXAM ROOM -->
+    <div id="screen-quiz" class="view-screen" hidden>
+      <div class="quiz-header-static">
+        <div class="exam-info">
+          <h2 class="exam-title">Phòng Thi Ảo 10 Phút</h2>
+          <p class="exam-subtitle">Hãy tập trung hoàn thành 10 câu hỏi trắc nghiệm dưới đây.</p>
+        </div>
+        <div id="quiz-timer-box" class="timer-box-clay">
+          <span class="timer-icon">⏱️</span>
+          <span id="quiz-timer">10:00</span>
+        </div>
+      </div>
+
+      <div class="quiz-container-full">
+        <!-- The quiz form starts here but will be moved to Screen 4 after submission -->
+        <form id="quiz-form">
+          <div id="quiz-questions-list" class="questions-list">
+            <!-- Danh sách câu hỏi trắc nghiệm -->
+          </div>
+          <button class="primary-button submit-quiz-btn" type="submit" id="submit-quiz-btn">
+            <span>Nộp bài & Chấm điểm</span><span aria-hidden="true">✓</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- SCREEN 4: RESULTS & ASSISTANT ROOM (Split Screen) -->
+    <div id="screen-results" class="view-screen app-layout" hidden>
+      
+      <!-- Cột Trái: Score & Questions review -->
+      <div class="left-panel">
+        <div class="results-action-header">
+          <div class="results-buttons">
+            <button class="back-to-setup-btn" type="button">← Chọn bài học khác</button>
+            <button class="review-again-btn" type="button" id="review-again-btn">📚 Xem lại tóm tắt</button>
+          </div>
+          <h2>Kết Quả Ôn Tập</h2>
+        </div>
+
+        <!-- Bảng điểm & Thống kê lỗ hổng -->
+        <section id="score-section" class="score-section" hidden>
+          <div class="score-card">
+            <div class="score-circle">
+              <span id="score-text">0/10</span>
+              <small>Đúng</small>
+            </div>
+            <div class="score-feedback">
+              <h4>Kết quả làm bài</h4>
+              <p id="score-feedback-text">Bạn hãy rà soát lại các câu sai dưới đây.</p>
+            </div>
+          </div>
+          
+          <div class="weak-areas-card" id="weak-areas-card" hidden>
+            <h5>📚 Kiến thức cần ôn tập lại:</h5>
+            <p>Dựa trên các câu trả lời sai, bạn nên mở xem các đoạn bài giảng dưới đây:</p>
+            <div id="weak-citations-list" class="citation-list"></div>
+          </div>
+        </section>
+
+        <!-- Container where quizForm will be moved to after submission -->
+        <div id="graded-quiz-container" class="graded-quiz-container">
+          <!-- quizForm will be appended here via JS after submit -->
+        </div>
+      </div>
+
+      <!-- Cột Phải: Chatbot RAG Trợ Lý -->
+      <aside class="right-panel" id="chatbot-panel" hidden>
+        <div class="chatbot-header">
+          <div class="chatbot-title-area">
+            <div class="mascot-wrapper">
+              <div class="mascot-avatar">
+                <div class="mascot-eyes">
+                  <div class="eye"></div>
+                  <div class="eye"></div>
+                </div>
+                <div class="mascot-mouth"></div>
+              </div>
+              <h4>Trợ lý Học tập AI</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="chatbot-chat-area" id="chatbot-messages">
+          <div class="chat-message system">
+            <p>Chào bạn! Tôi là trợ lý RAG. Hãy hỏi tôi về bài giảng này. Tất cả câu trả lời của tôi đều có trích dẫn mã đoạn <code>[Txx-NNN]</code> để bạn kiểm chứng.</p>
+          </div>
+        </div>
+
+        <!-- Các câu hỏi gợi ý nhanh -->
+        <div class="quick-prompts" id="quick-prompts-container">
+          <span class="quick-prompt-label">Gợi ý nhanh:</span>
+          <div class="quick-prompts-chips" id="quick-chips">
+            <!-- Sẽ được fill động tùy bài học -->
+          </div>
+        </div>
+
+        <form class="chatbot-input-area" id="chatbot-form">
+          <input type="text" id="chatbot-input" placeholder="Nhập câu hỏi tại đây..." required autocomplete="off">
+          <button type="submit" class="chat-submit-btn" aria-label="Gửi">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </form>
+      </aside>
+      
+    </div>
   </main>
 
+  <!-- Popup xem Citation -->
   <dialog id="citation-dialog">
     <button id="close-dialog" class="dialog-close" type="button" aria-label="Đóng">×</button>
-    <p class="eyebrow">Đoạn nguồn</p>
+    <p class="eyebrow">Đoạn trích nguồn bài giảng</p>
     <h2 id="citation-code">Citation</h2>
     <p id="citation-text"></p>
     <p id="citation-warning" class="citation-warning" hidden>Nguồn có đoạn [không nghe rõ], cần kiểm tra bản gốc.</p>
   </dialog>
 
-  <template id="question-template">
-    <article class="question-card">
-      <div class="question-number"></div>
-      <h4></h4>
-      <button class="reveal-button" type="button">Hiện đáp án</button>
-      <div class="answer" hidden>
-        <p></p>
-        <div class="citation-list"></div>
-        <div class="feedback-row">
-          <span>Đáp án chưa ổn?</span>
-          <button class="feedback-button" type="button">Chưa đúng</button>
-        </div>
-        <div class="feedback-reasons" hidden>
-          <button type="button">Sai nguồn</button>
-          <button type="button">Không trọng tâm</button>
-          <button type="button">Quá khó</button>
-          <small>Phản hồi chỉ được giữ trong phiên prototype này.</small>
-        </div>
+  <!-- Template câu hỏi trắc nghiệm -->
+  <template id="question-mcq-template">
+    <article class="question-mcq-card">
+      <div class="q-header">
+        <span class="q-number">01</span>
+        <h4 class="q-text">Câu hỏi</h4>
+      </div>
+      <div class="options-list">
+        <label class="option-label">
+          <input type="radio" name="q1" value="A">
+          <span class="option-text">Phương án A</span>
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q1" value="B">
+          <span class="option-text">Phương án B</span>
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q1" value="C">
+          <span class="option-text">Phương án C</span>
+        </label>
+        <label class="option-label">
+          <input type="radio" name="q1" value="D">
+          <span class="option-text">Phương án D</span>
+        </label>
+      </div>
+      <!-- Phần đáp án và giải thích ẩn lúc đầu, chỉ hiện sau khi nộp bài -->
+      <div class="q-feedback-area" hidden>
+        <div class="q-correct-status">Đúng / Sai</div>
+        <p class="q-explanation">Giải thích chi tiết...</p>
+        <div class="q-citations citation-list"></div>
       </div>
     </article>
   </template>
