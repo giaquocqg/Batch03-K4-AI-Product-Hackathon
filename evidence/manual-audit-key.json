@@ -1,0 +1,492 @@
+{
+  "rows": [
+    {
+      "audit_id": "A001",
+      "conversation_id": "C0144",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0170"
+    },
+    {
+      "audit_id": "A002",
+      "conversation_id": "C0575",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0416"
+    },
+    {
+      "audit_id": "A003",
+      "conversation_id": "C0201",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0176"
+    },
+    {
+      "audit_id": "A004",
+      "conversation_id": "C0387",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T0086"
+    },
+    {
+      "audit_id": "A005",
+      "conversation_id": "C0266",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T1084"
+    },
+    {
+      "audit_id": "A006",
+      "conversation_id": "C0001",
+      "matched_study_rules": [
+        "tom_tat",
+        "noi_dung_chinh"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0649"
+    },
+    {
+      "audit_id": "A007",
+      "conversation_id": "C0314",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0820"
+    },
+    {
+      "audit_id": "A008",
+      "conversation_id": "C0345",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T0182"
+    },
+    {
+      "audit_id": "A009",
+      "conversation_id": "C0020",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0122"
+    },
+    {
+      "audit_id": "A010",
+      "conversation_id": "C0169",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0999"
+    },
+    {
+      "audit_id": "A011",
+      "conversation_id": "C0057",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0415"
+    },
+    {
+      "audit_id": "A012",
+      "conversation_id": "C0064",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0864"
+    },
+    {
+      "audit_id": "A013",
+      "conversation_id": "C0177",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0192"
+    },
+    {
+      "audit_id": "A014",
+      "conversation_id": "C0264",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0735"
+    },
+    {
+      "audit_id": "A015",
+      "conversation_id": "C0113",
+      "matched_study_rules": [
+        "tom_tat",
+        "note"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0263"
+    },
+    {
+      "audit_id": "A016",
+      "conversation_id": "C0342",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0736"
+    },
+    {
+      "audit_id": "A017",
+      "conversation_id": "C0323",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T1074"
+    },
+    {
+      "audit_id": "A018",
+      "conversation_id": "C0581",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0443"
+    },
+    {
+      "audit_id": "A019",
+      "conversation_id": "C0467",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0511"
+    },
+    {
+      "audit_id": "A020",
+      "conversation_id": "C0094",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T1164"
+    },
+    {
+      "audit_id": "A021",
+      "conversation_id": "C0044",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0629"
+    },
+    {
+      "audit_id": "A022",
+      "conversation_id": "C0327",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T1211"
+    },
+    {
+      "audit_id": "A023",
+      "conversation_id": "C0520",
+      "matched_study_rules": [
+        "tom_tat",
+        "y_chinh"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T1129"
+    },
+    {
+      "audit_id": "A024",
+      "conversation_id": "C0556",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0422"
+    },
+    {
+      "audit_id": "A025",
+      "conversation_id": "C0223",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0975"
+    },
+    {
+      "audit_id": "A026",
+      "conversation_id": "C0469",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0448"
+    },
+    {
+      "audit_id": "A027",
+      "conversation_id": "C0469",
+      "matched_study_rules": [
+        "tom_tat",
+        "y_chinh"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0798"
+    },
+    {
+      "audit_id": "A028",
+      "conversation_id": "C0050",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T1165"
+    },
+    {
+      "audit_id": "A029",
+      "conversation_id": "C0368",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0616"
+    },
+    {
+      "audit_id": "A030",
+      "conversation_id": "C0378",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0586"
+    },
+    {
+      "audit_id": "A031",
+      "conversation_id": "C0002",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0092"
+    },
+    {
+      "audit_id": "A032",
+      "conversation_id": "C0165",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0519"
+    },
+    {
+      "audit_id": "A033",
+      "conversation_id": "C0039",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0453"
+    },
+    {
+      "audit_id": "A034",
+      "conversation_id": "C0144",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T0247"
+    },
+    {
+      "audit_id": "A035",
+      "conversation_id": "C0363",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T1167"
+    },
+    {
+      "audit_id": "A036",
+      "conversation_id": "C0174",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0839"
+    },
+    {
+      "audit_id": "A037",
+      "conversation_id": "C0175",
+      "matched_study_rules": [
+        "tom_tat",
+        "y_chinh"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0186"
+    },
+    {
+      "audit_id": "A038",
+      "conversation_id": "C0153",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0387"
+    },
+    {
+      "audit_id": "A039",
+      "conversation_id": "C0507",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0593"
+    },
+    {
+      "audit_id": "A040",
+      "conversation_id": "C0265",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0948"
+    },
+    {
+      "audit_id": "A041",
+      "conversation_id": "C0128",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0281"
+    },
+    {
+      "audit_id": "A042",
+      "conversation_id": "C0508",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0386"
+    },
+    {
+      "audit_id": "A043",
+      "conversation_id": "C0469",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0968"
+    },
+    {
+      "audit_id": "A044",
+      "conversation_id": "C0469",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T1049"
+    },
+    {
+      "audit_id": "A045",
+      "conversation_id": "C0533",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T1180"
+    },
+    {
+      "audit_id": "A046",
+      "conversation_id": "C0169",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0536"
+    },
+    {
+      "audit_id": "A047",
+      "conversation_id": "C0363",
+      "matched_study_rules": [
+        "tom_tat",
+        "y_chinh"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0360"
+    },
+    {
+      "audit_id": "A048",
+      "conversation_id": "C0565",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0298"
+    },
+    {
+      "audit_id": "A049",
+      "conversation_id": "C0469",
+      "matched_study_rules": [
+        "tom_tat",
+        "y_chinh"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0100"
+    },
+    {
+      "audit_id": "A050",
+      "conversation_id": "C0223",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T1072"
+    },
+    {
+      "audit_id": "A051",
+      "conversation_id": "C0549",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T0885"
+    },
+    {
+      "audit_id": "A052",
+      "conversation_id": "C0343",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T0278"
+    },
+    {
+      "audit_id": "A053",
+      "conversation_id": "C0118",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0716"
+    },
+    {
+      "audit_id": "A054",
+      "conversation_id": "C0134",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0932"
+    },
+    {
+      "audit_id": "A055",
+      "conversation_id": "C0063",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T0849"
+    },
+    {
+      "audit_id": "A056",
+      "conversation_id": "C0218",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0237"
+    },
+    {
+      "audit_id": "A057",
+      "conversation_id": "C0397",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T0366"
+    },
+    {
+      "audit_id": "A058",
+      "conversation_id": "C0095",
+      "matched_study_rules": [
+        "tom_tat"
+      ],
+      "sample_group": "rule_positive",
+      "turn_id": "T0897"
+    },
+    {
+      "audit_id": "A059",
+      "conversation_id": "C0555",
+      "matched_study_rules": [],
+      "sample_group": "near_boundary_unlabeled",
+      "turn_id": "T0742"
+    },
+    {
+      "audit_id": "A060",
+      "conversation_id": "C0452",
+      "matched_study_rules": [],
+      "sample_group": "rule_negative",
+      "turn_id": "T1162"
+    }
+  ],
+  "warning": "Do not open this key until both reviewers have submitted independent labels."
+}

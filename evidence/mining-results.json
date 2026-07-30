@@ -1,0 +1,76 @@
+{
+  "categories": {
+    "concept_to_micro_lab": {
+      "conversation_share_percent": 3.42,
+      "conversations": 20,
+      "rule_match_counts": {
+        "lab_guidance": 2,
+        "qualified_example": 6,
+        "request_example": 18,
+        "use_case_request": 1
+      },
+      "turn_share_percent": 1.74,
+      "turns": 22,
+      "turns_per_matched_user": 1.22,
+      "user_share_percent": 4.88,
+      "users": 18
+    },
+    "course_action_hub": {
+      "conversation_share_percent": 4.79,
+      "conversations": 28,
+      "rule_match_counts": {
+        "resource_and_action": 29
+      },
+      "turn_share_percent": 2.3,
+      "turns": 29,
+      "turns_per_matched_user": 1.04,
+      "user_share_percent": 7.59,
+      "users": 28
+    },
+    "study_pack": {
+      "conversation_share_percent": 21.37,
+      "conversations": 125,
+      "rule_match_counts": {
+        "mindmap": 1,
+        "noi_dung_chinh": 8,
+        "note": 7,
+        "tom_gon": 2,
+        "tom_tat": 125,
+        "tong_hop": 12,
+        "y_chinh": 17
+      },
+      "turn_share_percent": 11.58,
+      "turns": 146,
+      "turns_per_matched_user": 1.42,
+      "user_share_percent": 27.91,
+      "users": 103
+    }
+  },
+  "methodology_version": 1,
+  "population": {
+    "conversations": 585,
+    "turns": 1261,
+    "users": 369
+  },
+  "source": {
+    "path": "data/vlearn-pack/chatlog/chat_history_anonymized_for_hackathon.csv",
+    "sha256": "400ce4ce5c1c58189be9ca0630bd517ca69cfcac637f0f802edec70f4f796cad"
+  },
+  "study_pack_tutor_failure_heuristic": {
+    "definition": "The first 300 characters start with xin loi, rat tiec, or a hien tai phrase followed by khong tim/khong the. This is a lexical signal, not a semantic quality judgment.",
+    "share_of_study_pack_turns_percent": 32.19,
+    "turns": 47,
+    "users": 43
+  },
+  "validation": {
+    "csv_rows": 2522,
+    "malformed_turn_count": 0,
+    "malformed_turn_ids": [],
+    "role_counts": {
+      "student": 1261,
+      "tutor": 1261
+    },
+    "turn_ids_seen": 1261,
+    "valid_student_tutor_pairs": 1261
+  }
+}

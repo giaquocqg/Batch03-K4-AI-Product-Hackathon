@@ -1,0 +1,41 @@
+STUDY PACK 10 PHUT - THEO DOI TIEN DO
+Cap nhat: 2026-07-30
+
+Quy uoc:
+[x] Hoan tat va da co artifact
+[/] Da trien khai nhung con can bang chung/chay thu that
+[ ] Chua lam
+[M] Can con nguoi hoac quyen truy cap, khong tu dong dien
+
+PHASE 1 - SPEC.MD CHINH THUC
+[x] spec.md co du 9 section theo template.
+[M] Section 8 con cho ten thanh vien va phan cong cu the.
+[M] Manual evidence audit, survey va willing users van phai dung du lieu nguoi that.
+
+PHASE 2 - CODEBASE BACKEND
+[x] codebase/README.md - kien truc, trang thai that, cach cai/chay/test.
+[x] codebase/transcript_parser.py - parser [Txx-NNN], bo heading khoi evidence,
+    khong cat ngam transcript dai.
+[x] codebase/schema.py - JSON Schema Draft 2020-12 va ham enforce schema.
+[/] codebase/study_pack_generator.py - da noi Gemini/OpenAI that, schema,
+    validator, trace va status ok/limited/abstain; chua co successful run artifact
+    vi GOOGLE_API_KEY va OPENAI_API_KEY deu khong co trong moi truong.
+[x] codebase/citation_validator.py - chan item thieu citation, citation khong ton
+    tai, hoac chi dua tren doan [khong nghe ro]. Semantic groundedness can cham tay.
+[x] codebase/requirements.txt - provider SDK, jsonschema va pytest.
+[x] Test parser tren transcript-01 - 3 test pass; co them regression transcript-03.
+
+PHASE 3 - EVAL & VALIDATION SCAFFOLDS
+[x] eval/README.md - co cau, quality bar, cach luu/cham mot run that.
+[x] eval/golden_set.json - 22 case, du 4 lop kho, normal, rare va attack.
+[x] validation/README.md - quy trinh 5 nguoi, 3 cau hoi va bang log rong.
+[M] Chay tron bo golden set can API key that va nguoi cham semantic.
+[M] Tao validation/feedback_log.md can it nhat 5 phien user test that.
+[x] CLI yeu cau chon transcript khi thieu input va guard tat dinh objective mo
+    ho/ngoai pham vi/prompt injection truoc API call (GS-11 den GS-14, GS-19,
+    GS-20).
+
+KIEM TRA DA CHAY
+[x] python -m pytest codebase/ -v -> 9 passed.
+[x] python -m py_compile cac module backend va test -> pass.
+[/] Real LLM generation -> chua chay, thieu API key.
