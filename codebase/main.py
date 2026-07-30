@@ -2,7 +2,7 @@
 Main entry point for Study Pack generation.
 
 Usage:
-    python codebase/main.py --transcript data/vlearn-pack/transcript/transcript-01-clean.md
+    python codebase/main.py --transcript data/study-pack-corpus/transcript/transcript-10-clean.md
 """
 
 import argparse
@@ -47,7 +47,7 @@ def main():
     parser.add_argument(
         '--transcript',
         required=False,
-        help='Đường dẫn đến file transcript (ví dụ: data/vlearn-pack/transcript/transcript-01-clean.md)'
+        help='Đường dẫn transcript (ví dụ: data/study-pack-corpus/transcript/transcript-10-clean.md)'
     )
     parser.add_argument(
         '--objective',

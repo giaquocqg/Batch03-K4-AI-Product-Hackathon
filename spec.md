@@ -285,3 +285,4 @@ Khi khái niệm có ngoại lệ quan trọng mà tóm tắt có thể bỏ só
 |---|---|---|
 | 30/07/2026 12:40 | Tạo spec.md v1 từ track-c-proposal.md + bản thảo 12 mục | Khởi tạo spec chính thức theo template, chốt quality bar, chuẩn bị cho CP4 |
 | 30/07/2026 07:56 UTC | Nối clickable flow CP2 với backend thật; chạy OpenAI transcript-01, giữ 2 failure và 1 run `limited` | Chứng minh AI call không hard-code, enforce schema/citation và không che failure trước khi chạy full golden set |
+| 30/07/2026 23:34 ICT | Chuyển corpus runtime sang Paper + Day 01-05 (`T10`-`T15`), giữ nguyên 6 transcript VLearn cũ | Dùng toàn bộ nội dung nguồn mới theo yêu cầu chủ dự án; manifest + test bảo toàn 1.456 segment và không cắt ngầm |

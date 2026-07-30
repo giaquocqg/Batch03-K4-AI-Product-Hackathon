@@ -27,7 +27,7 @@ Objective khác lát cắt `Ôn quiz trong 10 phút` bị chặn tất định t
 
 | Thành phần | Trạng thái | Ghi chú |
 |---|---|---|
-| Transcript parser | **Thật** | Đọc file `.md` thật trong `data/vlearn-pack/transcript/` |
+| Transcript parser | **Thật** | Runtime đọc Paper + Day 01-05 trong `data/study-pack-corpus/transcript/`; corpus VLearn cũ được giữ để regression |
 | LLM call | **Thật, đã chạy** | OpenAI run `20260730_075616_069051`; key chỉ đọc từ environment |
 | Citation validator | **Thật** | Chỉ chấp nhận mã `[Txx-NNN]` thuộc lecture đã gửi model |
 | JSON schema | **Thật** | Enforce field bắt buộc, kiểu, giới hạn và citation không rỗng |
@@ -68,7 +68,7 @@ PowerShell dùng `$env:GOOGLE_API_KEY = "..."` hoặc
 ### Chạy
 
 ```bash
-python codebase/main.py --transcript data/vlearn-pack/transcript/transcript-01-clean.md
+python codebase/main.py --transcript data/study-pack-corpus/transcript/transcript-10-clean.md
 ```
 
 Clickable flow CP2:
@@ -83,7 +83,7 @@ thẳng generator thật; thiếu API key sẽ hiện lỗi cấu hình từ bac
 Ghi kết quả JSON để chấm:
 
 ```bash
-python codebase/main.py --transcript data/vlearn-pack/transcript/transcript-01-clean.md --output eval/results/run_manual.json
+python codebase/main.py --transcript data/study-pack-corpus/transcript/transcript-10-clean.md --output eval/results/run_manual.json
 ```
 
 Nếu không có `GOOGLE_API_KEY` hoặc `OPENAI_API_KEY`, chương trình dừng trước
@@ -100,10 +100,11 @@ citation occurrence hợp lệ, 1 keyword ngoài nguồn bị loại và status
 python -m pytest codebase/ -v
 ```
 
-Test dùng trực tiếp transcript trong data pack và input từ `golden_set.json`;
-không dùng response AI giả. Bộ test xác nhận parser đọc đủ citation, không nhập
-heading vào evidence, không cắt ngầm transcript dài và chặn objective ngoài lát
-cắt trước khi gọi API.
+Test dùng trực tiếp corpus active, bộ VLearn cũ cho regression và input từ
+`golden_set.json`; không dùng response AI giả. Bộ test xác nhận đủ 1.456
+segment từ Paper + Day 01-05, hash nội dung khớp manifest, web chỉ liệt kê
+corpus mới, parser không cắt ngầm transcript dài và objective ngoài lát cắt bị
+chặn trước khi gọi API.
 
 ## Quy tắc phát triển
 
@@ -112,3 +113,5 @@ Theo `PROJECT_RULES.md`:
 2. Nếu thiếu API key → dừng và yêu cầu đầu vào; không dùng giá trị thay thế.
 3. Mọi lần gọi API giữ trace kiểm tra lại, kể cả API/JSON/schema error.
 4. Không commit API key, `.env`, hoặc bản sao data pack vào repo nộp bài.
+5. Không xoá/ghi đè `data/vlearn-pack/transcript/`; runtime chỉ dùng
+   `data/study-pack-corpus/transcript/` theo quy tắc trong `AGENTS.md`.

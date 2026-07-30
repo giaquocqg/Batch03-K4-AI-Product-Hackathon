@@ -41,7 +41,7 @@ class ActiveRecallQuestion:
 @dataclass
 class StudyPack:
     """Complete Study Pack output structure."""
-    transcript_id: str  # e.g., "transcript-01-clean"
+    transcript_id: str  # e.g., "transcript-10-clean"
     transcript_title: str
     objective: str  # e.g., "Ôn quiz trong 10 phút"
     key_points: List[KeyPoint]

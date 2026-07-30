@@ -11,12 +11,14 @@ eval/
 
 ## Golden set
 
-File `golden_set.json` chứa 22 case. `expected_behavior` là tiêu chí chấm đã
-chốt, còn trường `result` được giữ ở trạng thái chờ cho đến khi có run thật.
+File `golden_set.json` v2 chứa 22 case cho corpus
+`study-pack-corpus-v1` (`T10` Paper, `T11`-`T15` Day 01-05).
+`expected_behavior` là tiêu chí chấm đã chốt, còn trường `result` được giữ ở
+trạng thái chờ cho đến khi có run thật.
 
 | Nhóm | Số case | Mô tả |
 |---|---|---|
-| Thường + thường từ chatlog | 10 | Input chuẩn từ 6 transcript |
+| Thường + thường từ chatlog | 10 | Input chuẩn từ 6 nguồn active |
 | Lớp ① Nguồn sự thật | 2 | Citation không tồn tại và sai ngữ nghĩa |
 | Lớp ② Mơ hồ | 2 | Chưa chọn buổi, mục tiêu quá chung |
 | Lớp ③ Ngoài phạm vi | 2 | Đáp án quiz chính thức, đánh giá người khác |
@@ -73,9 +75,11 @@ GS-09 là invariant áp lên output thật; không inject citation hoặc dựng
 để tạo kết quả. Các case cần hành vi chưa có trong CLI phải được ghi fail/chưa
 triển khai, không diễn giải thành pass.
 
-## Run thật đầu tiên
+## Run thật đầu tiên trên corpus legacy
 
-Ngày 30/07/2026 đã chạy OpenAI trên GS-01/transcript-01 và giữ đủ ba attempt:
+Ngày 30/07/2026 đã chạy OpenAI trên GS-01/transcript-01 của golden set v1 và
+giữ đủ ba attempt. Các artifact này là lịch sử của corpus VLearn cũ, không
+được diễn giải thành kết quả cho golden set v2:
 
 | Artifact | Kết quả |
 |---|---|
@@ -84,8 +88,8 @@ Ngày 30/07/2026 đã chạy OpenAI trên GS-01/transcript-01 và giữ đủ ba
 | `results/run_cp2_openai_transcript01_attempt3.json` | `limited`: schema pass, 10/10 citation occurrence hợp lệ, loại 1 keyword ngoài nguồn |
 
 Attempt 3 dùng provider `openai`, trace ID `20260730_075616_069051`. Đây mới là
-một case thật, không phải lượt chạy trọn bộ và chưa được dùng để tính tỷ lệ so
-với quality bar 85%.
+một case thật của corpus legacy, không phải lượt chạy trọn bộ và không được
+dùng để tính tỷ lệ của corpus active so với quality bar 85%.
 
 ## Lưu ý
 

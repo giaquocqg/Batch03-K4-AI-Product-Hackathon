@@ -18,7 +18,7 @@
 | `02-guide.md` | Hướng dẫn 5 giai đoạn: khám phá → spec → build → đo & validate → demo |
 | `03-template-ai-spec.md` | Template AI Spec (nộp 23:59 ngày 1) |
 | `04-rubric.md` | Rubric 100 điểm (25 nộp checkpoint + 75 chấm bài) + checklist xác minh 6 mốc |
-| `data/` | Dữ liệu thật đã ẩn danh: chatlog VLearn tutor + 6 transcript bài giảng bản sạch — dùng để tìm bằng chứng và xây golden set |
+| `data/` | Data pack VLearn gốc được giữ để audit + corpus runtime Paper/Day 01-05 trong `data/study-pack-corpus/` |
 | `tham-khao/` | JTBD Playbook (PDF) + worksheet JTBD đầy đủ — đọc khi muốn đào sâu |
 
 ## Lịch — 6 mốc
@@ -81,6 +81,18 @@ Ba điều nên biết trước khi làm:
 3. **Quality bar** chốt tại spec.md 23:59 ngày 1 và giữ nguyên sau đó.
 4. Chỉ dùng dữ liệu trong `data/` hoặc dữ liệu giả tự sinh — không dùng dữ liệu thật của người thật. Không commit API key.
 5. Tuân thủ **quy định bảo mật dữ liệu** bên dưới — đây là điều kiện để được cấp data.
+
+## Corpus mà prototype đang sử dụng
+
+Web app và eval hiện hành chỉ đọc sáu nguồn trong
+`data/study-pack-corpus/transcript/`: `T10` (Paper) và `T11`-`T15`
+(Day 01-05). Mỗi dòng nội dung không rỗng của nguồn kết hợp được giữ thành
+một segment `[Txx-NNN]`; độ phủ được kiểm bằng
+`data/study-pack-corpus/manifest.json`.
+
+Sáu transcript ban đầu trong `data/vlearn-pack/transcript/` **không bị xoá,
+đổi tên hoặc ghi đè**. Chúng được giữ nguyên cho audit và regression, nhưng
+không xuất hiện trong danh sách chọn nguồn của web app.
 
 ## Bảo mật dữ liệu được cung cấp
 

@@ -25,7 +25,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'codebase'))
 from main import main as run_single_case
 
 
-TRANSCRIPT_DIR = Path(__file__).parent.parent / 'data' / 'vlearn-pack' / 'transcript'
+TRANSCRIPT_DIR = (
+    Path(__file__).parent.parent
+    / 'data'
+    / 'study-pack-corpus'
+    / 'transcript'
+)
 GOLDEN_SET = Path(__file__).parent / 'golden_set.json'
 RESULTS_DIR = Path(__file__).parent / 'results'
 

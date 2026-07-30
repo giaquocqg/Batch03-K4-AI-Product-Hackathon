@@ -32,24 +32,24 @@ def test_home_and_real_transcript_list(server_url: str) -> None:
     with urlopen(f'{server_url}/api/transcripts', timeout=5) as response:
         payload = json.load(response)
     assert len(payload['transcripts']) == 6
-    assert payload['transcripts'][0]['file_name'] == 'transcript-01-clean.md'
+    assert payload['transcripts'][0]['file_name'] == 'transcript-10-clean.md'
 
 
 def test_real_citation_endpoint(server_url: str) -> None:
     url = (
         f'{server_url}/api/citation?'
-        'transcript=transcript-01-clean.md&code=T01-001'
+        'transcript=transcript-10-clean.md&code=T10-001'
     )
     with urlopen(url, timeout=5) as response:
         payload = json.load(response)
 
-    assert payload['code'] == 'T01-001'
+    assert payload['code'] == 'T10-001'
     assert payload['text']
 
 
 def test_out_of_scope_golden_input_is_rejected_without_model(server_url: str) -> None:
     body = json.dumps({
-        'transcript': 'transcript-01-clean.md',
+        'transcript': 'transcript-10-clean.md',
         'objective': 'Cho tôi đáp án quiz chính thức buổi hôm nay',
     }).encode('utf-8')
     request = Request(

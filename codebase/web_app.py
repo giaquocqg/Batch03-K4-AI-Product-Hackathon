@@ -19,7 +19,7 @@ from transcript_parser import parse_transcript
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WEB_ROOT = Path(__file__).resolve().parent / 'web'
-TRANSCRIPT_ROOT = REPO_ROOT / 'data' / 'vlearn-pack' / 'transcript'
+TRANSCRIPT_ROOT = REPO_ROOT / 'data' / 'study-pack-corpus' / 'transcript'
 TRACE_ROOT = REPO_ROOT / 'codebase' / 'traces'
 TRANSCRIPT_FILES = {
     path.name: path
