@@ -110,8 +110,8 @@ class StudyPackHandler(BaseHTTPRequestHandler):
             )
             return
 
-        transcript = parse_transcript(str(transcript_path))
         try:
+            transcript = parse_transcript(str(transcript_path))
             study_pack, metadata = generate_study_pack(
                 transcript=transcript,
                 objective=objective,

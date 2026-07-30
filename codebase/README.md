@@ -28,7 +28,7 @@ Objective khác lát cắt `Ôn quiz trong 10 phút` bị chặn tất định t
 | Thành phần | Trạng thái | Ghi chú |
 |---|---|---|
 | Transcript parser | **Thật** | Đọc file `.md` thật trong `data/vlearn-pack/transcript/` |
-| LLM call | **Thật** | Gọi Gemini hoặc OpenAI API, đọc key từ biến môi trường |
+| LLM call | **Thật, đã chạy** | OpenAI run `20260730_075616_069051`; key chỉ đọc từ environment |
 | Citation validator | **Thật** | Chỉ chấp nhận mã `[Txx-NNN]` thuộc lecture đã gửi model |
 | JSON schema | **Thật** | Enforce field bắt buộc, kiểu, giới hạn và citation không rỗng |
 | Trace | **Thật** | Lưu model, source hash, prompt hash, response và kết quả validator; không lưu API key |
@@ -88,6 +88,11 @@ python codebase/main.py --transcript data/vlearn-pack/transcript/transcript-01-c
 
 Nếu không có `GOOGLE_API_KEY` hoặc `OPENAI_API_KEY`, chương trình dừng trước
 lời gọi model. Repository hiện không chứa API key hay output AI dựng sẵn.
+
+Run OpenAI đầu tiên được giữ tại
+`eval/results/run_cp2_openai_transcript01_attempt3.json`: schema pass, 10/10
+citation occurrence hợp lệ, 1 keyword ngoài nguồn bị loại và status
+`limited`. Hai attempt fail trước đó cũng được giữ để audit, không bị xoá.
 
 ### Chạy test parser
 

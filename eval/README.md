@@ -73,6 +73,20 @@ GS-09 là invariant áp lên output thật; không inject citation hoặc dựng
 để tạo kết quả. Các case cần hành vi chưa có trong CLI phải được ghi fail/chưa
 triển khai, không diễn giải thành pass.
 
+## Run thật đầu tiên
+
+Ngày 30/07/2026 đã chạy OpenAI trên GS-01/transcript-01 và giữ đủ ba attempt:
+
+| Artifact | Kết quả |
+|---|---|
+| `results/run_cp2_openai_transcript01_attempt1.json` | Fail schema: model lặp lại schema thay vì trả object Study Pack |
+| `results/run_cp2_openai_transcript01_attempt2.json` | Fail provider: OpenAI Structured Outputs không hỗ trợ `uniqueItems` |
+| `results/run_cp2_openai_transcript01_attempt3.json` | `limited`: schema pass, 10/10 citation occurrence hợp lệ, loại 1 keyword ngoài nguồn |
+
+Attempt 3 dùng provider `openai`, trace ID `20260730_075616_069051`. Đây mới là
+một case thật, không phải lượt chạy trọn bộ và chưa được dùng để tính tỷ lệ so
+với quality bar 85%.
+
 ## Lưu ý
 
 - Chưa đạt quality bar nhưng phân tích được nguyên nhân vẫn được tính đủ điểm.

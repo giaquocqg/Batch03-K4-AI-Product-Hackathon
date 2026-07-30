@@ -33,7 +33,7 @@ MODEL_BY_PROVIDER = {
     'openai': 'gpt-4o-mini',
 }
 GENERATION_TEMPERATURE = 0.3
-METHOD_VERSION = 'study-pack-generator-v1'
+METHOD_VERSION = 'study-pack-generator-v2'
 SUPPORTED_OBJECTIVE = 'Ôn quiz trong 10 phút'
 LOW_CONFIDENCE_MARKER_RATIO = 0.2
 
@@ -145,6 +145,7 @@ def _get_api_provider() -> Tuple[str, str]:
 def _build_prompts(
     transcript: ParsedTranscript,
     objective: str = "Ôn quiz trong 10 phút",
+    include_schema: bool = True,
 ) -> Tuple[str, str]:
     """Build system and user prompts from transcript.
 
@@ -155,7 +156,14 @@ def _build_prompts(
     Returns:
         Tuple of (system_prompt, user_prompt).
     """
-    schema_str = json.dumps(STUDY_PACK_JSON_SCHEMA, indent=2, ensure_ascii=False)
+    schema_str = (
+        json.dumps(STUDY_PACK_JSON_SCHEMA, indent=2, ensure_ascii=False)
+        if include_schema
+        else (
+            'Schema được API enforce. Chỉ trả object có đúng ba field top-level: '
+            'key_points, keywords, questions.'
+        )
+    )
     transcript_content = format_segments_for_prompt(
         transcript,
         exclude_activities=True,
@@ -240,13 +248,33 @@ def _call_openai(
     from openai import OpenAI
 
     client = OpenAI(api_key=api_key)
+    response_schema = json.loads(json.dumps(STUDY_PACK_JSON_SCHEMA))
+    response_schema.pop('$schema', None)
+
+    def remove_unsupported_keywords(value: object) -> None:
+        if isinstance(value, dict):
+            value.pop('uniqueItems', None)
+            for child in value.values():
+                remove_unsupported_keywords(child)
+        elif isinstance(value, list):
+            for child in value:
+                remove_unsupported_keywords(child)
+
+    remove_unsupported_keywords(response_schema)
     response = client.chat.completions.create(
         model=MODEL_BY_PROVIDER['openai'],
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        response_format={"type": "json_object"},
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "study_pack",
+                "strict": True,
+                "schema": response_schema,
+            },
+        },
         temperature=GENERATION_TEMPERATURE,
     )
     content = response.choices[0].message.content
@@ -291,7 +319,12 @@ def _save_trace(
         'model': MODEL_BY_PROVIDER[provider],
         'method_version': METHOD_VERSION,
         'schema_version': STUDY_PACK_JSON_SCHEMA['$schema'],
-        'generation_settings': {'temperature': GENERATION_TEMPERATURE},
+        'generation_settings': {
+            'temperature': GENERATION_TEMPERATURE,
+            'response_format': (
+                'json_schema' if provider == 'openai' else 'application/json'
+            ),
+        },
         'source': {
             'file_name': transcript_path.name,
             'sha256': transcript_hash,
@@ -353,7 +386,11 @@ def generate_study_pack(
     """
     objective = validate_objective(objective)
     provider, api_key = _get_api_provider()
-    system_prompt, user_prompt = _build_prompts(transcript, objective)
+    system_prompt, user_prompt = _build_prompts(
+        transcript,
+        objective,
+        include_schema=provider != 'openai',
+    )
     trace_id = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')
 
     # --- Real LLM call ---
