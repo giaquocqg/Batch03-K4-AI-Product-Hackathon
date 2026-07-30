@@ -1,0 +1,11 @@
+{
+  "study_pack": null,
+  "metadata": {
+    "status": "rejected",
+    "reason_code": "unsupported_objective",
+    "message": "Mục tiêu chưa thuộc lát cắt hỗ trợ. Hãy chọn \"Ôn quiz trong 10 phút\"; output giới hạn 5 ý trọng tâm, 8 keyword và 5 câu active recall.",
+    "transcript_id": "T01",
+    "transcript_title": "Transcript bài giảng (bản sạch) — Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+    "objective": "Học tất cả"
+  }
+}

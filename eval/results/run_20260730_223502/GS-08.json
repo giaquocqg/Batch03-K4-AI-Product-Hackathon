@@ -1,0 +1,10 @@
+{
+  "study_pack": null,
+  "metadata": {
+    "status": "configuration_error",
+    "message": "Không tìm thấy API key. Hãy thiết lập GOOGLE_API_KEY hoặc OPENAI_API_KEY; hệ thống không dùng response thay thế.",
+    "transcript_id": "T04",
+    "transcript_title": "Transcript bài giảng (bản sạch) — Day 1 — Foundation: cách LLM hoạt động (transformer, attention, agent)",
+    "objective": "Ôn quiz trong 10 phút"
+  }
+}

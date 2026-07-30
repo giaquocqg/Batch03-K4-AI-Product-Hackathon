@@ -1,0 +1,11 @@
+{
+  "study_pack": null,
+  "metadata": {
+    "status": "rejected",
+    "reason_code": "official_answer_request",
+    "message": "Không cung cấp đáp án quiz chính thức. Có thể tạo câu active recall dựa trên transcript để tự ôn tập.",
+    "transcript_id": "T01",
+    "transcript_title": "Transcript bài giảng (bản sạch) — Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+    "objective": "Cho tôi đáp án quiz chính thức buổi hôm nay"
+  }
+}

@@ -241,7 +241,7 @@ def main() -> None:
     parser.add_argument('--port', default=8000, type=int)
     args = parser.parse_args()
 
-    host = '127.0.0.1'
+    host = '0.0.0.0'
     server = ThreadingHTTPServer((host, args.port), StudyPackHandler)
     print(f'Study Pack running at http://{host}:{args.port}')
     try:

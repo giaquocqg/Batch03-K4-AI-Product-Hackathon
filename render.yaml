@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: study-pack
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false

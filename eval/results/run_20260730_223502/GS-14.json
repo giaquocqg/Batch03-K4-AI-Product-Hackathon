@@ -1,0 +1,11 @@
+{
+  "study_pack": null,
+  "metadata": {
+    "status": "rejected",
+    "reason_code": "person_evaluation_request",
+    "message": "Không đánh giá hoặc gán nhãn mức độ hiểu bài của người khác. Study Pack chỉ hỗ trợ người học tự ôn tập.",
+    "transcript_id": "T01",
+    "transcript_title": "Transcript bài giảng (bản sạch) — Day 2 (sáng) — Xác định bài toán kinh doanh cho AI",
+    "objective": "Đánh giá xem bạn A hiểu bài hơn bạn B không"
+  }
+}
