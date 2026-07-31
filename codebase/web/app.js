@@ -696,6 +696,8 @@ function startStudentVirtualExam() {
       r.disabled = false;
       r.checked = false;
     });
+    const submitBar = quizForm.querySelector('.quiz-submit-bar');
+    if (submitBar) submitBar.style.display = 'flex';
   }
   // Reset MCQ card statuses
   const questions = (currentStudentPack && currentStudentPack.questions) ? currentStudentPack.questions : [];
@@ -842,6 +844,8 @@ function handleQuizSubmit(e) {
   if (gradedContainer && quizForm) {
     gradedContainer.appendChild(quizForm);
     quizForm.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = true);
+    const submitBar = quizForm.querySelector('.quiz-submit-bar');
+    if (submitBar) submitBar.style.display = 'none';
   }
 
   const finalScoreText = document.getElementById('final-score-text');
@@ -1051,7 +1055,7 @@ function initRagChatbotForResults() {
   if (chatbotMessages) {
     chatbotMessages.innerHTML = `
       <div class="chat-message system">
-        <p>Chào bạn! Tôi là trợ lý RAG. Hãy hỏi tôi về bài giảng này. Tất cả câu trả lời của tôi đều có trích dẫn mã đoạn <code>[Txx-NNN]</code> để bạn kiểm chứng.</p>
+        <p>Chào bạn! Tôi là trợ lý RAG. Hãy hỏi tôi về bài giảng này.</p>
       </div>
     `;
   }
