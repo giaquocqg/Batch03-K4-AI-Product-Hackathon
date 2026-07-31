@@ -1,5 +1,5 @@
 # AI SPEC — 10 mins Study Pack & Multi-Agent Learning Platform · Nhóm D304 · Zone C
-Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
+Hướng: [ ] A — VLearn  [ ] B — Trợ lý Học viên  [x] C — Làn mở
 
 ## §1. User & Job
 - **Job executor + workflow**: 
@@ -14,7 +14,7 @@ Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
     5. Mở lại tài liệu thô khi không chắc đáp án.
 
   - **Phần AI đảm nhận**: Hiểu ngôn ngữ tự nhiên, trích xuất 5 ý trọng tâm từ transcript/slide, tự động tạo 10 câu trắc nghiệm MCQ chuẩn Bloom và đóng vai Trợ giảng Socratic / Học sinh AI (Feynman Mode) để phản hồi thắc mắc.
-  - **Phần Logic tất định (Non-AI)**: Chỉnh sửa HITL (Human-in-the-loop) của giảng viên, chuyển tab, ẩn/hiện đáp án, lưu CSDL SQLite (`studypack.db`), xóa/ghi đè Vector Embeddings ChromaDB.
+  - **Phần Logic tất định (Non-AI)**: Chỉnh sửa HITL (Human-in-the-loop) của giảng viên, chuyển tab, ẩn/hiện đáp án, lưu CSDL SQLite (`studypack.db`), xóa/ghi đè Vector Embeddings ChromaDB, và cơ chế Structured/Graceful Fallback quản lý lỗi.
 
 - **Core JTBD**:
   - Ôn lại kiến thức trọng tâm của một buổi học dài trong 10 phút để biết mình đã nắm vững phần nào và còn hổng ở đâu .
@@ -80,7 +80,7 @@ Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
   4. *Không sinh kiến thức ngoài phạm vi tài liệu đã xuất bản*.
 
 - **Mức prototype nhắm tới**:
-  - [x] **Working Prototype** — Toàn bộ Pipeline hoạt động thật 100%: Upload PDF → AI Enrichment & MCQ Gen → HITL Edit & Approve → Sync ChromaDB → Student Study Pack + Socratic RAG Chat + Feynman Chat.
+  - [x] **Working Prototype ĐÃ HOÀN THIỆN** — Toàn bộ Pipeline hoạt động thật 100% trên FastAPI & Vanilla JS: Upload PDF → AI Enrichment & MCQ Gen → HITL Edit & Approve → Sync ChromaDB (hoặc Fallback SQLite) → Student Study Pack + Socratic RAG Chat + Feynman Chat.
 
 - **Automation**:
   - [x] **Augment** (Giảng viên kiểm duyệt & Sinh viên ra quyết định)
@@ -96,6 +96,7 @@ Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
 | **G10 — Thu hẹp phạm vi khi nghi ngờ** | Khi học viên hỏi thông tin nằm ngoài slide (Out-of-domain), Trợ giảng Socratic thông báo tài liệu không đề cập và chuyển hướng gợi mở tư duy thay vì bịa câu trả lời. |
 | **G11 — Giải thích vì sao** | Mỗi câu MCQ trong Quick Quiz sau khi làm xong đều hiện giải thích chi tiết của giảng viên và nút "Hỏi AI Socratic Giải Thích Thêm". |
 | **G15 — Định dạng Markdown trực quan** | Toàn bộ bài tóm tắt, ghi chú giảng viên và phản hồi chatbot được render Markdown chuẩn (bảng biểu, tiêu đề, danh sách, callout). |
+| **G9 — Graceful Degradation (An toàn khi lỗi)** | Xây dựng cơ chế Structured Fallback. Nếu module `chromadb` chưa cài đặt hoặc gọi LLM lỗi mạng, hệ thống tự trả về giải thích từ DB SQLite thay vì sập. |
 
 ---
 
@@ -113,6 +114,7 @@ Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
 | 8 | Đòi AI xếp loại tư cách / so sánh độ thông minh giữa 2 học sinh | ③ Ngoài phạm vi | AI từ chối đánh giá cá nhân, giải thích trí tuệ đa dạng và không đo lường qua vài câu chat. | G1, Ethical Boundary |
 | 9 | Thắc mắc LLM có đúng 100% sự thật không | ④ Domain High Stakes | AI khẳng định LLM có thể bị Hallucination do Next-Token Prediction, không tin tưởng 100%. | G2, Calibrated Trust |
 | 10 | File Slide PDF tải lên bị lỗi định dạng hoặc không đọc được chữ | ① Nguồn sự thật | Backend bắt ngoại lệ `PDFServiceError`, hiển thị thông báo lỗi rõ ràng trên UI. | Graceful Failure |
+| 11 | Hệ thống thiếu dependency (ChromaDB) hoặc LLM API lỗi | ① Nguồn sự thật / Kỹ thuật | Kích hoạt Structured Fallback: Lấy giải thích trực tiếp từ SQLite (QuestionDB) thay vì gọi LLM/RAG, đảm bảo học viện luôn có đáp án. | Graceful Degradation |
 
 ---
 
@@ -164,16 +166,18 @@ Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
 
 | Phần việc | Người phụ trách |
 |---|---|
-| **Spec & Evidence Mining** | Nguyễn Thanh Tùng |
-| **Prompt Engineering & Golden Set** | Trần Quốc Gia |
+| **Spec & Evidence Mining** | Phạm Tấn Gia Quốc |
+| **Prompt Engineering & Golden Set** | Dương Đức Minh |
 | **Backend (FastAPI, SQLAlchemy DB, ChromaDB RAG, Services)** | Nguyễn Thanh Tùng |
-| **Frontend UI/UX & Rich Markdown System** | Trần Quốc Gia |
-| **Empirical Evaluation & Demo** | Nguyễn Thanh Tùng |
+| **Frontend UI/UX & Rich Markdown System** | Dương Đức Minh |
+| **Empirical Evaluation & Demo** | Phạm Tấn Gia Quốc, Nguyễn Thanh Tùng |
 
 - **Willing users (≥3 người thật ngoài nhóm)**:
-  1. *Nguyễn Hoàng Nam* (Học viên K4 AI Thực Chiến)
-  2. *Lê Thị Minh Trang* (Học viên K4 AI Thực Chiến)
-  3. *Phạm Đức Anh* (Học viên K4 AI Thực Chiến)
+  1. *Trần Quang Minh* (Học viên K4 AI Thực Chiến)
+  2. *Đinh Lê Bình An* (Học viên K3 AI Thực Chiến)
+  3. *Nguyễn Đức Dũng* (Học viên K3 AI Thực Chiến)
+  4. *Nguyễn Trần Gia Phụng* (Học viên K4 AI Thực Chiến)
+  5. *Nguyễn Trương Ngọc Mai* (Học viên K4 AI Thực Chiến)
 
 - **Kế hoạch vòng validation CP5**:
   - Gửi link làm thử prototype `http://127.0.0.1:8000` cho 3 học viên trên ôn thử bài `DAY_01`.
@@ -190,3 +194,4 @@ Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
 | 30/07/2026 | Khởi tạo Spec v1 và bộ khung API backend | Xây dựng Pipeline Teacher Upload & Student Pack |
 | 31/07/2026 (Sáng) | Tích hợp hệ thống Rich Markdown Parser & CSS cho Teacher Notes và Chatbots | Khắc phục lỗi hiển thị ghi chú raw markdown bị xấu theo phản hồi người dùng |
 | 31/07/2026 (Trưa) | Cập nhật Golden Set 22 cases & chạy Empirical Eval thực tế đạt 81.8% | Đáp ứng đầy đủ 4 kiểu tình huống AI dễ sai nhất theo Rubric kiểm thử |
+| 31/07/2026 (Chiều) | Hoàn thiện 100% luồng Full-Stack (FastAPI/JS) và thêm Graceful Fallback | Đảm bảo hệ thống không sập khi server thiếu dependency ChromaDB hoặc lỗi kết nối LLM (phản ánh từ log terminal thực tế) |
