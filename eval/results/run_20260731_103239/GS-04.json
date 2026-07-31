@@ -1,0 +1,82 @@
+{
+  "case_id": "GS-04",
+  "category": "normal",
+  "transcript_id": "transcript-13-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Tạo study pack Day 03 về Agentic AI và ReAct, keyword phải xuất hiện trong nguồn",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:32:54.770493",
+  "run_id": "run_20260731_103239",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033254_777523",
+    "study_pack_sha256": "1643296a77963fc506d70821b505b56c327ab29255fbd060aeee302d553b0beb",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T13-006",
+        "T13-007",
+        "T13-009",
+        "T13-021",
+        "T13-054",
+        "T13-055",
+        "T13-095",
+        "T13-096",
+        "T13-097",
+        "T13-098",
+        "T13-099",
+        "T13-124",
+        "T13-125",
+        "T13-130",
+        "T13-153",
+        "T13-158",
+        "T13-178",
+        "T13-179",
+        "T13-180"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 22,
+      "unique_citations": 19,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

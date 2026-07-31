@@ -1,0 +1,85 @@
+{
+  "case_id": "GS-02",
+  "category": "normal",
+  "transcript_id": "transcript-11-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Tạo study pack về AI & LLM Foundation của Day 01, citation T11-xxx hợp lệ",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:35:06.886542",
+  "run_id": "run_20260731_103502",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok",
+      "limited"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033506_891989",
+    "study_pack_sha256": "51d5beb3e85bad5a6a7f53fe243fec8c4a9a491da0115b6717aeefc91c0e46c9",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T11-004",
+        "T11-021",
+        "T11-024",
+        "T11-027",
+        "T11-033",
+        "T11-034",
+        "T11-039",
+        "T11-043",
+        "T11-044",
+        "T11-045",
+        "T11-046",
+        "T11-047",
+        "T11-049",
+        "T11-050",
+        "T11-051",
+        "T11-053",
+        "T11-137",
+        "T11-138",
+        "T11-139",
+        "T11-140",
+        "T11-141"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 23,
+      "unique_citations": 21,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

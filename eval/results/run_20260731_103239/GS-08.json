@@ -1,0 +1,79 @@
+{
+  "case_id": "GS-08",
+  "category": "normal",
+  "transcript_id": "transcript-13-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Lượt chạy lại Day 03 — active recall phải yêu cầu giải thích, không chép lại",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:33:13.841317",
+  "run_id": "run_20260731_103239",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033313_861279",
+    "study_pack_sha256": "01c8a6736ae3ffa300e4e5798a5b9eeadbcdecae5219a07b73c2338a4d45600e",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T13-007",
+        "T13-018",
+        "T13-021",
+        "T13-055",
+        "T13-095",
+        "T13-096",
+        "T13-097",
+        "T13-098",
+        "T13-099",
+        "T13-101",
+        "T13-109",
+        "T13-110",
+        "T13-125",
+        "T13-130",
+        "T13-152",
+        "T13-153"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 17,
+      "unique_citations": 16,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "case_id": "GS-12",
+  "category": "hard_layer_2_ambiguous",
+  "transcript_id": "transcript-12-clean",
+  "objective": "Học tất cả",
+  "expected_behavior": "Đề nghị mục tiêu hỗ trợ 'Ôn quiz trong 10 phút' và nêu giới hạn output (5 ý, 5 câu)",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:35:46.720359",
+  "run_id": "run_20260731_103502",
+  "http_status": 422,
+  "status": "rejected",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "rejected"
+    ],
+    "checks": {
+      "expected_status": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": false,
+    "manual_dimensions_pending": []
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": false,
+    "status": "rejected",
+    "transcript_id": null,
+    "objective": null,
+    "provider": null,
+    "model": null,
+    "trace_id": null,
+    "reason_code": "unsupported_objective",
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

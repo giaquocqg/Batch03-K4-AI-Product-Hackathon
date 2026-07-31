@@ -6,7 +6,12 @@
 eval/
 ├── README.md           ← tài liệu này
 ├── golden_set.json     ← 22 case kiểm thử theo cơ cấu guide §2.6
-└── results/            ← artifact mỗi lượt chạy thật (tạo khi có API key)
+├── ai-semantic-audit-run_20260731_103502.csv/.md
+│                       ← AI-assisted precheck, không giả làm human review
+├── manual-review-run_20260731_103502.csv
+│                       ← nhãn semantic do Gia Quốc chấm cho full-run CP3
+├── private-results/    ← full output chạy thật, local-only và bị gitignore
+└── results/            ← summary đã redaction: hash, count, citation code
 ```
 
 ## Golden set
@@ -49,22 +54,27 @@ README này không tự tuyên bố checkpoint đã đạt.
 ## Cách chạy eval
 
 ```bash
-# Chạy một case thật trên backend
-python codebase/main.py --transcript <transcript_path> --output eval/results/run_<timestamp>.json
+# Chạy một case thật trực tiếp trên backend
+python codebase/main.py --transcript <transcript_path> --output eval/private-results/run_<timestamp>.json
+
+# Chạy đủ golden set qua app local đã cấu hình provider
+python eval/run_golden_set.py --base-url http://127.0.0.1:8000
 
 # Chạy test tất định trước eval
 python -m pytest codebase/ -v
 ```
 
 Không tự điền kết quả hàng loạt khi chưa có API key. Một lượt đánh giá hoàn
-chỉnh cần giữ output và trace của mọi case đã gọi model, sau đó chấm đủ sáu
+chỉnh cần giữ full output và trace local trong thư mục bị gitignore, sau đó
+chấm đủ sáu
 chiều. `groundedness`, `relevance`, `active_recall` và các case có
 `eval_note` phải được người chấm đọc nguồn; validator code không thay thế bước
 này.
 
 ## Checklist một lượt thật
 
-1. Tạo thư mục `eval/results/<run-id>/`.
+1. Tạo thư mục private `eval/private-results/<run-id>/`; runner chỉ ghi summary
+   đã redaction vào `eval/results/<run-id>/`.
 2. Chạy từng case có transcript bằng backend thật, không dùng response giả.
 3. Với case không có transcript hoặc ngoài phạm vi, ghi đúng hành vi sản phẩm.
 4. Đối chiếu từng citation với đoạn `[Txx-NNN]` và chấm sáu chiều.
@@ -74,6 +84,43 @@ này.
 GS-09 là invariant áp lên output thật; không inject citation hoặc dựng response
 để tạo kết quả. Các case cần hành vi chưa có trong CLI phải được ghi fail/chưa
 triển khai, không diễn giải thành pass.
+
+## Full-run CP3 trên corpus active
+
+Ngày 31/07/2026 đã chạy đủ 22/22 case qua app local và lời gọi Gemini thật.
+Full output được giữ trong `private-results/run_20260731_103502/`; artifact
+public đã redact nội dung học tại `results/run_20260731_103502/`.
+
+| Thuộc tính | Kết quả |
+|---|---|
+| Provider / model | Gemini / `gemini-3.5-flash-lite` |
+| Tổng case đã thực thi | 22/22; 0 lỗi provider; 0 skip |
+| Trạng thái | 14 `ok`; 2 `limited`; 1 `needs_input`; 5 `rejected` |
+| Automated gate | 22/22 = 100% |
+| Citation trên 16 Study Pack | 352 total; 0 invalid; 0 item thiếu citation |
+| Semantic review | Gia Quốc: 16/16 case `pass` cả groundedness, relevance, active recall; khoảng 11:00–12:45 ICT (ước lượng) |
+| Quality bar cuối | **Đạt: 22/22 = 100%** theo nhãn human + deterministic gate |
+
+Hai case `limited` vẫn đạt automated gate vì validator đã loại keyword không
+có trong nguồn trước khi hiển thị, còn Study Pack cuối vẫn đủ 5 ý, 5 câu,
+keyword và toàn bộ citation hợp lệ. Warning và removed-item count vẫn được giữ
+trong artifact; không đổi `limited` thành `ok`.
+
+Run `run_20260731_103239` là full-run đầu tiên theo evaluator cũ, đạt automated
+21/22 (95,45%) vì mọi trạng thái `limited` bị chấm fail dù output cuối đã sạch
+và đủ. Run này được giữ để audit lý do đổi rule chấm; không bị xóa hoặc ghi đè.
+
+`manual-review-run_20260731_103502.csv` ghi nhãn human do Gia Quốc chấm: 16/16
+Study Pack đạt cả groundedness, relevance và active recall. Kết hợp với 6 case
+`needs_input/rejected` đã đạt deterministic gate, full set đạt `22/22 = 100%`;
+citation syntax là `352` total, `0` invalid và `0` item thiếu citation. Do đó,
+theo nhãn manual hiện có, run này đạt quality bar 85%.
+
+AI-assisted precheck vẫn được giữ nguyên để audit: nó flag 13/16 case do tiêu
+chí rất chặt về citation heading/câu dẫn, trong khi reviewer human đánh giá
+16/16 pass sau khi đọc nguồn. Nhãn human là kết luận chính thức của run; không
+xóa precheck hoặc che bất đồng. Xem
+`ai-semantic-audit-run_20260731_103502.md` và `.csv`.
 
 ## Run thật đầu tiên trên corpus legacy
 

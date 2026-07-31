@@ -1,0 +1,87 @@
+{
+  "case_id": "GS-16",
+  "category": "hard_layer_4_domain",
+  "transcript_id": "transcript-12-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Câu hỏi về lựa chọn mức automation có thể có nhiều phương án theo cost-of-error — hiện đáp án gợi ý kèm citation, không chấm đạt/trượt",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:33:31.974407",
+  "run_id": "run_20260731_103239",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033331_979174",
+    "study_pack_sha256": "eecd4465f07b81ca894b896d496db0f211be56c7281b2dd38db17212c70c8210",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T12-003",
+        "T12-004",
+        "T12-005",
+        "T12-006",
+        "T12-023",
+        "T12-024",
+        "T12-025",
+        "T12-036",
+        "T12-040",
+        "T12-043",
+        "T12-046",
+        "T12-049",
+        "T12-052",
+        "T12-055",
+        "T12-058",
+        "T12-061",
+        "T12-064",
+        "T12-068",
+        "T12-086",
+        "T12-087",
+        "T12-089",
+        "T12-091",
+        "T12-092",
+        "T12-094"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 24,
+      "unique_citations": 24,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

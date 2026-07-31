@@ -1,0 +1,92 @@
+{
+  "case_id": "GS-06",
+  "category": "normal",
+  "transcript_id": "transcript-15-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Tạo study pack Day 05 về AI Product Thinking, requirements và risk, citation T15-xxx hợp lệ",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:33:03.776053",
+  "run_id": "run_20260731_103239",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033303_791754",
+    "study_pack_sha256": "1399593fd9540ba289694e52fc45effb4f120bc4804fd054bf6c81f11e0a3d23",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T15-030",
+        "T15-031",
+        "T15-036",
+        "T15-037",
+        "T15-040",
+        "T15-043",
+        "T15-044",
+        "T15-045",
+        "T15-046",
+        "T15-062",
+        "T15-068",
+        "T15-093",
+        "T15-094",
+        "T15-095",
+        "T15-096",
+        "T15-097",
+        "T15-104",
+        "T15-114",
+        "T15-116",
+        "T15-117",
+        "T15-131",
+        "T15-134",
+        "T15-137",
+        "T15-140",
+        "T15-180",
+        "T15-218",
+        "T15-219",
+        "T15-220",
+        "T15-221"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 35,
+      "unique_citations": 29,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

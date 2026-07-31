@@ -1,0 +1,85 @@
+{
+  "case_id": "GS-10",
+  "category": "hard_layer_1_source_of_truth",
+  "transcript_id": "transcript-12-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Nếu đáp án nói về Problem Statement nhưng cite đoạn Day 02 không hỗ trợ mệnh đề đó, người chấm đánh fail groundedness",
+  "eval_note": "Case này cần người chấm đọc cả mệnh đề và đoạn nguồn — validator tự động không bắt được sai ngữ nghĩa",
+  "run_timestamp": "2026-07-31T10:35:42.152720",
+  "run_id": "run_20260731_103502",
+  "http_status": 200,
+  "status": "limited",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok",
+      "limited"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "limited",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033542_177066",
+    "study_pack_sha256": "78c94c717f6571c8e3b27b6ef7df32179a6dd2a4f9f1cba231831d88c647084f",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 7,
+      "question_count": 5,
+      "citation_codes": [
+        "T12-003",
+        "T12-004",
+        "T12-005",
+        "T12-006",
+        "T12-021",
+        "T12-023",
+        "T12-024",
+        "T12-025",
+        "T12-036",
+        "T12-068",
+        "T12-069",
+        "T12-086",
+        "T12-087",
+        "T12-090",
+        "T12-091",
+        "T12-092",
+        "T12-094",
+        "T12-095",
+        "T12-096",
+        "T12-097",
+        "T12-135"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 25,
+      "unique_citations": 21,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 1,
+    "removed_item_count": 1
+  }
+}

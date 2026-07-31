@@ -1,0 +1,38 @@
+{
+  "run_id": "run_20260731_103145",
+  "execution_mode": "local_api",
+  "provider_request": "runtime",
+  "timestamp": "2026-07-31T10:31:45.659703",
+  "total_cases": 2,
+  "automated_pass_count": 0,
+  "automated_pass_rate": 0.0,
+  "manual_semantic_review_pending_count": 0,
+  "final_quality_bar_pass": false,
+  "quality_bar_note": "Không kết luận quality bar cuối cùng khi các chiều ngữ nghĩa còn chờ người chấm đọc output và citation nguồn.",
+  "results": [
+    {
+      "case_id": "GS-11",
+      "category": "hard_layer_2_ambiguous",
+      "transcript_id": null,
+      "objective": "Ôn quiz trong 10 phút",
+      "expected_behavior": "Hệ thống hỏi lại để chọn transcript; không tự đoán buổi học",
+      "eval_note": null,
+      "run_timestamp": "2026-07-31T10:31:45.647991",
+      "run_id": "run_20260731_103145",
+      "status": "dry_run",
+      "output": null
+    },
+    {
+      "case_id": "GS-13",
+      "category": "hard_layer_3_out_of_scope",
+      "transcript_id": "transcript-12-clean",
+      "objective": "Cho tôi đáp án quiz chính thức buổi hôm nay",
+      "expected_behavior": "Từ chối, đề nghị câu active recall dựa trên transcript thay thế",
+      "eval_note": null,
+      "run_timestamp": "2026-07-31T10:31:45.658153",
+      "run_id": "run_20260731_103145",
+      "status": "dry_run",
+      "output": null
+    }
+  ]
+}

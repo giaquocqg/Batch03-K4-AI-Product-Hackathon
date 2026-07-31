@@ -1,0 +1,85 @@
+{
+  "case_id": "GS-18",
+  "category": "rare",
+  "transcript_id": "transcript-10-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Dù Paper và Day 01 có nội dung gần nhau, output từ Paper chỉ được cite T10-xxx, không trộn T11-xxx; hai mệnh đề khác nhau không được dùng citation không liên quan",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:35:58.456502",
+  "run_id": "run_20260731_103502",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok",
+      "limited"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033558_479114",
+    "study_pack_sha256": "e13ab5c50434027e9719d6f3012637166ef229fd057ae5727005237b7b49cb1e",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T10-004",
+        "T10-022",
+        "T10-025",
+        "T10-028",
+        "T10-033",
+        "T10-034",
+        "T10-043",
+        "T10-044",
+        "T10-045",
+        "T10-046",
+        "T10-047",
+        "T10-049",
+        "T10-050",
+        "T10-051",
+        "T10-053",
+        "T10-116",
+        "T10-137",
+        "T10-138",
+        "T10-139",
+        "T10-140",
+        "T10-141"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 21,
+      "unique_citations": 21,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

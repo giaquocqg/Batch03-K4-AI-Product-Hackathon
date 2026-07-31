@@ -1,0 +1,83 @@
+{
+  "case_id": "GS-05",
+  "category": "normal",
+  "transcript_id": "transcript-14-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Tạo study pack Day 04 về Prompt Engineering và Tool Calling, citation T14-xxx hợp lệ",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:32:59.384522",
+  "run_id": "run_20260731_103239",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033259_411195",
+    "study_pack_sha256": "0ec7dbc63f30d2ae3ee8c16f62abb1f895e6a878b0abec2ad03cf6db04575e19",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T14-022",
+        "T14-028",
+        "T14-047",
+        "T14-074",
+        "T14-216",
+        "T14-217",
+        "T14-218",
+        "T14-220",
+        "T14-233",
+        "T14-260",
+        "T14-268",
+        "T14-325",
+        "T14-386",
+        "T14-387",
+        "T14-422",
+        "T14-426",
+        "T14-531",
+        "T14-532",
+        "T14-536",
+        "T14-538"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 20,
+      "unique_citations": 20,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

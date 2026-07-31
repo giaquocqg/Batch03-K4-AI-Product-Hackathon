@@ -1,0 +1,69 @@
+{
+  "case_id": "GS-03",
+  "category": "normal",
+  "transcript_id": "transcript-12-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Tạo study pack Day 02 về chuyển yêu cầu mơ hồ thành Problem Statement, không vượt giới hạn 5 ý + 5 câu",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:32:48.515627",
+  "run_id": "run_20260731_103239",
+  "http_status": 200,
+  "status": "limited",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok"
+    ],
+    "checks": {
+      "expected_status": false
+    },
+    "automated_pass": false,
+    "manual_semantic_review_required": false,
+    "manual_dimensions_pending": []
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "limited",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033248_532822",
+    "study_pack_sha256": "950b30edf4a51b114f5f94cdebc70696dee87b4647e7e627d4549784e34a3c91",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 7,
+      "question_count": 5,
+      "citation_codes": [
+        "T12-003",
+        "T12-023",
+        "T12-024",
+        "T12-025",
+        "T12-036",
+        "T12-068",
+        "T12-086",
+        "T12-087",
+        "T12-088",
+        "T12-089",
+        "T12-091",
+        "T12-092",
+        "T12-094",
+        "T12-095",
+        "T12-096",
+        "T12-097",
+        "T12-128",
+        "T12-129"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 22,
+      "unique_citations": 18,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 1,
+    "removed_item_count": 1
+  }
+}

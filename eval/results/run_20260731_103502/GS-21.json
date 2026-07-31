@@ -1,0 +1,82 @@
+{
+  "case_id": "GS-21",
+  "category": "normal_from_chatlog",
+  "transcript_id": "transcript-14-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "User muốn tóm tắt toàn bộ → Study Pack chọn 5 ý trọng tâm nhất thay vì cover mọi thứ, giữ đúng giới hạn",
+  "eval_note": null,
+  "run_timestamp": "2026-07-31T10:36:02.680681",
+  "run_id": "run_20260731_103502",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok",
+      "limited"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033602_686003",
+    "study_pack_sha256": "ef4d15c4fba961067b4cb76b7b348956b8c8ed93b48bfc4e387f9ed4c7384d60",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T14-022",
+        "T14-028",
+        "T14-047",
+        "T14-053",
+        "T14-074",
+        "T14-108",
+        "T14-118",
+        "T14-233",
+        "T14-237",
+        "T14-325",
+        "T14-326",
+        "T14-422",
+        "T14-426",
+        "T14-431",
+        "T14-531",
+        "T14-532",
+        "T14-536",
+        "T14-538"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 20,
+      "unique_citations": 18,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}

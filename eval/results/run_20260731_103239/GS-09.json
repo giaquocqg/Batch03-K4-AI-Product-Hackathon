@@ -1,0 +1,83 @@
+{
+  "case_id": "GS-09",
+  "category": "hard_layer_1_source_of_truth",
+  "transcript_id": "transcript-10-clean",
+  "objective": "Ôn quiz trong 10 phút",
+  "expected_behavior": "Trong output thật, mọi citation phải thuộc tập T10-xxx của Paper; nếu model trả mã không tồn tại, item phải bị loại và không hiện cho user",
+  "eval_note": "Chỉ chấm trên output từ lời gọi model thật; không inject hoặc dựng response giả",
+  "run_timestamp": "2026-07-31T10:33:17.867970",
+  "run_id": "run_20260731_103239",
+  "http_status": 200,
+  "status": "ok",
+  "automated_evaluation": {
+    "expected_statuses": [
+      "ok"
+    ],
+    "checks": {
+      "expected_status": true,
+      "study_pack_present": true,
+      "five_key_points": true,
+      "five_questions": true,
+      "keywords_present": true,
+      "validator_valid": true,
+      "no_invalid_citations": true,
+      "no_missing_citations": true,
+      "citation_source_isolation": true
+    },
+    "automated_pass": true,
+    "manual_semantic_review_required": true,
+    "manual_dimensions_pending": [
+      "groundedness",
+      "relevance",
+      "active_recall"
+    ]
+  },
+  "output": {
+    "artifact_type": "sanitized_public_evaluation_summary",
+    "content_redacted": true,
+    "status": "ok",
+    "transcript_id": null,
+    "objective": null,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash-lite",
+    "trace_id": "20260731_033317_871942",
+    "study_pack_sha256": "557cf3094e05b1e16d4720214fe4ae6446aec29dfe947a398944404e604d48a6",
+    "output_summary": {
+      "key_point_count": 5,
+      "keyword_count": 8,
+      "question_count": 5,
+      "citation_codes": [
+        "T10-004",
+        "T10-021",
+        "T10-024",
+        "T10-027",
+        "T10-029",
+        "T10-033",
+        "T10-034",
+        "T10-043",
+        "T10-044",
+        "T10-045",
+        "T10-046",
+        "T10-047",
+        "T10-049",
+        "T10-050",
+        "T10-051",
+        "T10-053",
+        "T10-098",
+        "T10-116",
+        "T10-137",
+        "T10-138"
+      ]
+    },
+    "validation_summary": {
+      "valid": true,
+      "total_citations": 20,
+      "unique_citations": 20,
+      "invalid_citation_count": 0,
+      "missing_citation_item_count": 0,
+      "validity_rate": 1.0
+    },
+    "warning_count": 0,
+    "removed_item_count": 0
+  }
+}
