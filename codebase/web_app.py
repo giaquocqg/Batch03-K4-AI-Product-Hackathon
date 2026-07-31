@@ -264,7 +264,7 @@ async def chat_endpoint(payload: ChatRequest, request: Request, db: Session = De
             model = genai.GenerativeModel(model_name, system_instruction=system_prompt)
             response = model.generate_content(
                 user_prompt,
-                generation_config={"temperature": 0.3, "max_output_tokens": 600},
+                generation_config={"temperature": 0.3, "max_output_tokens": 1200},
             )
             answer = response.text or ""
         elif provider == "openai":
@@ -277,7 +277,7 @@ async def chat_endpoint(payload: ChatRequest, request: Request, db: Session = De
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.3,
-                max_tokens=600,
+                max_tokens=1200,
             )
             answer = response.choices[0].message.content or ""
     except Exception as llm_err:

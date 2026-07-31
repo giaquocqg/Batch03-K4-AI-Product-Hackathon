@@ -156,8 +156,8 @@ def _call_llm(system_prompt: str, user_prompt: str) -> str:
             )
             return response.text or ""
         except Exception:
-            # Fallback to gemini-2.0-flash or gemini-1.5-flash if needed
-            model = genai.GenerativeModel("gemini-3.5-flash")
+            # Fallback to gemini-2.0-flash or gemini-2.5-flash if needed
+            model = genai.GenerativeModel("gemini-2.5-flash")
             response = model.generate_content(
                 full_prompt,
                 generation_config=gen_config,

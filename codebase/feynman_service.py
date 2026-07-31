@@ -9,13 +9,20 @@ import os
 import uuid
 from typing import Any, Dict, List, Optional
 
-from study_pack_generator import _get_api_provider, _load_env_file
+from study_pack_generator import _get_api_provider
 
 logger = logging.getLogger("FeynmanService")
 
 # Global Feynman session memory store: session_id -> list of messages {"role": str, "content": str}
 FEYNMAN_SESSION_MEMORY: Dict[str, List[Dict[str, str]]] = {}
 FEYNMAN_SESSION_LESSON: Dict[str, Dict[str, Any]] = {}
+
+# Model đã được kiểm chứng hoạt động, tốc độ nhanh tương đương chatbot trợ lý
+_FEYNMAN_MODEL_PRIMARY = "gemini-3.5-flash-lite"
+_FEYNMAN_MODEL_FALLBACK = "gemini-2.5-flash"
+
+# Fix #3: Giới hạn độ dài enrich_summary để không làm phình prompt
+_SUMMARY_MAX_CHARS = 800
 
 FEYNMAN_SYSTEM_PROMPT = """<role>Bạn là một học sinh tò mò, lễ phép đang nhờ người dùng (đóng vai Thầy giáo/Chuyên gia) giải thích bài học này.</role>
 
@@ -43,7 +50,8 @@ def _call_feynman_llm(
     user_prompt: str,
 ) -> str:
     """Execute multi-turn LLM call for Feynman Mode using OpenAI or Gemini."""
-    _load_env_file()
+    # Fix #2: Không gọi _load_env_file() ở đây nữa — đã được gọi tại startup (web_app.py)
+    # _get_api_provider() nội bộ có gọi _load_env_file() nên vẫn đảm bảo env được load
     try:
         provider, api_key = _get_api_provider()
     except Exception as err:
@@ -65,7 +73,7 @@ def _call_feynman_llm(
             model="gpt-4o-mini",
             messages=messages,
             temperature=0.5,
-            max_tokens=300,
+            max_tokens=800,
         )
         return response.choices[0].message.content or ""
 
@@ -73,7 +81,8 @@ def _call_feynman_llm(
         import google.generativeai as genai
 
         genai.configure(api_key=api_key)
-        gemini_model_name = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+        # Fix #1: Ưu tiên env var, fallback về model đúng tên
+        gemini_model_name = os.environ.get("GEMINI_MODEL", _FEYNMAN_MODEL_PRIMARY)
 
         history_text = ""
         for msg in history:
@@ -90,16 +99,28 @@ def _call_feynman_llm(
             model = genai.GenerativeModel(gemini_model_name)
             res = model.generate_content(
                 full_prompt,
-                generation_config={"temperature": 0.5, "max_output_tokens": 350},
+                generation_config={"temperature": 0.5, "max_output_tokens": 800},
             )
             return res.text or ""
-        except Exception:
-            model = genai.GenerativeModel("gemini-3.5-flash")
-            res = model.generate_content(
-                full_prompt,
-                generation_config={"temperature": 0.5, "max_output_tokens": 350},
+        except Exception as primary_err:
+            # Fix #1: Fallback về model đúng tên — tránh cả hai lần đều timeout
+            logger.warning(
+                f"Feynman primary model '{gemini_model_name}' failed: {primary_err}. "
+                f"Retrying with '{_FEYNMAN_MODEL_FALLBACK}'."
             )
-            return res.text or ""
+            try:
+                model = genai.GenerativeModel(_FEYNMAN_MODEL_FALLBACK)
+                res = model.generate_content(
+                    full_prompt,
+                    generation_config={"temperature": 0.5, "max_output_tokens": 800},
+                )
+                return res.text or ""
+            except Exception as fallback_err:
+                logger.error(f"Feynman fallback model '{_FEYNMAN_MODEL_FALLBACK}' also failed: {fallback_err}")
+                return (
+                    "Dạ thưa Thầy, em thấy bài học này rất thú vị! "
+                    "Thầy có thể giải thích giúp em khái niệm quan trọng nhất trong bài này không ạ?"
+                )
 
     raise RuntimeError(f"Unsupported provider: {provider}")
 
@@ -120,14 +141,18 @@ def start_feynman_session(
         Dict with session_id, initial_message, and status.
     """
     session_id = f"feynman_{uuid.uuid4().hex[:12]}"
+
+    # Fix #3: Truncate summary để giảm token input
+    truncated_summary = (enrich_summary or "Bài học tổng quan.")[:_SUMMARY_MAX_CHARS]
+
     FEYNMAN_SESSION_MEMORY[session_id] = []
     FEYNMAN_SESSION_LESSON[session_id] = {
         "lesson_code": lesson_code,
-        "enrich_summary": enrich_summary,
+        "enrich_summary": truncated_summary,
         "title": title,
     }
 
-    user_prompt = FEYNMAN_INITIAL_PROMPT.format(enrich_summary=enrich_summary or "Bài học tổng quan.")
+    user_prompt = FEYNMAN_INITIAL_PROMPT.format(enrich_summary=truncated_summary)
     
     initial_msg = _call_feynman_llm(
         system_prompt=FEYNMAN_SYSTEM_PROMPT,
@@ -168,20 +193,31 @@ def respond_feynman_session(
         FEYNMAN_SESSION_MEMORY[session_id] = []
         FEYNMAN_SESSION_LESSON[session_id] = {
             "lesson_code": lesson_code,
-            "enrich_summary": enrich_summary or "",
+            "enrich_summary": (enrich_summary or "")[:_SUMMARY_MAX_CHARS],
         }
 
     history = FEYNMAN_SESSION_MEMORY[session_id]
     lesson_info = FEYNMAN_SESSION_LESSON.get(session_id, {})
-    summary_context = enrich_summary or lesson_info.get("enrich_summary", "")
 
-    user_prompt = f"""--- THÔNG TIN NỘI DUNG BÀI GIẢNG ĐỂ THAM CHIẾU ---
-{summary_context}
+    # Fix #4: Chỉ nhúng summary vào prompt khi turn đầu tiên (history ngắn).
+    summary_context = enrich_summary or lesson_info.get("enrich_summary", "")
+    truncated_summary = summary_context[:_SUMMARY_MAX_CHARS]
+    include_summary = len(history) <= 2  # Chỉ nhúng khi <= 1 turn đã qua
+
+    if include_summary and truncated_summary:
+        user_prompt = f"""--- THÔNG TIN NỘI DUNG BÀI GIẢNG ĐỂ THAM CHIẾU ---
+{truncated_summary}
 
 --- LỜI GIẢI THÍCH CỦA THẦY GIÁO (NGƯỜI DÙNG) ---
 "{student_answer}"
 
 Hãy đánh giá xem câu trả lời của Thầy giáo có đúng và dễ hiểu hay không, sau đó phản hồi theo đúng nguyên tắc vai trò học sinh tò mò."""
+    else:
+        # Từ turn 3 trở đi: prompt gọn hơn, dựa vào history để maintain context
+        user_prompt = f"""--- LỜI GIẢI THÍCH MỚI CỦA THẦY GIÁO ---
+"{student_answer}"
+
+Hãy đánh giá và phản hồi theo đúng nguyên tắc vai trò học sinh tò mò."""
 
     reply_text = _call_feynman_llm(
         system_prompt=FEYNMAN_SYSTEM_PROMPT,

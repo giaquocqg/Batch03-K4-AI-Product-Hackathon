@@ -211,23 +211,31 @@ async def chat_feynman_start(
 
     Chatbot 2: Feynman Mode Reverse Role Agent. Initiates session with curious student persona.
     """
-    lesson = (
-        db.query(LessonDB)
-        .filter(LessonDB.lesson_code == payload.lesson_code)
-        .order_by(LessonDB.version.desc())
-        .first()
-    )
+    import logging
+    _logger = logging.getLogger("FeynmanRoute")
+    try:
+        lesson = (
+            db.query(LessonDB)
+            .filter(LessonDB.lesson_code == payload.lesson_code)
+            .order_by(LessonDB.version.desc())
+            .first()
+        )
 
-    enrich_summary = lesson.enrich_summary if lesson else "Nội dung tổng quan bài học 10 phút."
-    title = lesson.title if lesson else payload.lesson_code
+        enrich_summary = lesson.enrich_summary if lesson else "Nội dung tổng quan bài học 10 phút."
+        title = lesson.title if lesson else payload.lesson_code
 
-    res = start_feynman_session(
-        lesson_code=payload.lesson_code,
-        enrich_summary=enrich_summary or "",
-        title=title,
-    )
-
-    return res
+        res = start_feynman_session(
+            lesson_code=payload.lesson_code,
+            enrich_summary=enrich_summary or "",
+            title=title,
+        )
+        return res
+    except Exception as e:
+        _logger.error(f"Feynman start error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Không thể khởi tạo phiên Feynman: {str(e)}",
+        )
 
 
 @router.post("/chat/feynman/respond")
@@ -239,20 +247,28 @@ async def chat_feynman_respond(
 
     Chatbot 2: Feynman Mode Reverse Role Agent. Evaluates student explanation and responds.
     """
-    lesson = (
-        db.query(LessonDB)
-        .filter(LessonDB.lesson_code == payload.lesson_code)
-        .order_by(LessonDB.version.desc())
-        .first()
-    )
+    import logging
+    _logger = logging.getLogger("FeynmanRoute")
+    try:
+        lesson = (
+            db.query(LessonDB)
+            .filter(LessonDB.lesson_code == payload.lesson_code)
+            .order_by(LessonDB.version.desc())
+            .first()
+        )
 
-    enrich_summary = lesson.enrich_summary if lesson else ""
+        enrich_summary = lesson.enrich_summary if lesson else ""
 
-    res = respond_feynman_session(
-        session_id=payload.session_id,
-        lesson_code=payload.lesson_code,
-        student_answer=payload.student_answer,
-        enrich_summary=enrich_summary,
-    )
-
-    return res
+        res = respond_feynman_session(
+            session_id=payload.session_id,
+            lesson_code=payload.lesson_code,
+            student_answer=payload.student_answer,
+            enrich_summary=enrich_summary,
+        )
+        return res
+    except Exception as e:
+        _logger.error(f"Feynman respond error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Không thể phản hồi: {str(e)}",
+        )

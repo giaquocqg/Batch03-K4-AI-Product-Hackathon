@@ -901,6 +901,10 @@ function askAiExplainQuestion(questionId) {
     // để tránh race condition. handleChatbotSubmit sẽ đọc và xóa ngay lập tức.
     chatbotForm.dataset.pendingSearchQuery = q.question_text;
 
+    // Fix Bug #3: Truyền question_id để backend dùng nhánh MCQ-aware với explanation từ DB
+    // và build prompt đầy đủ hơn thay vì rơi vào free-form Q&A
+    chatbotForm.dataset.pendingQuestionId = q.id !== undefined ? String(q.id) : String(questionId);
+
     // Auto-scroll the chatbot panel into view for better UX
     if (chatbotPanel) {
       chatbotPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -951,7 +955,15 @@ async function startFeynmanChat() {
       }),
     });
 
-    const data = await res.json();
+    // Safe JSON parse: tránh crash khi server trả plain text 500
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (_) {
+      if (list) list.innerHTML = '<div class="chat-msg agent text-danger">⚠️ Máy chủ đang khởi động lại, vui lòng thử lại sau vài giây.</div>';
+      return;
+    }
+
     if (res.ok && data.session_id) {
       activeFeynmanSessionId = data.session_id;
       if (list) {
@@ -963,11 +975,11 @@ async function startFeynmanChat() {
         `;
       }
     } else {
-      if (list) list.innerHTML = `<div class="chat-msg agent text-danger">Lỗi: ${data.detail || 'Không thể khởi tạo.'}</div>`;
+      if (list) list.innerHTML = `<div class="chat-msg agent text-danger">Lỗi: ${escapeHtml(data.detail || 'Không thể khởi tạo.')}</div>`;
     }
 
   } catch (err) {
-    if (list) list.innerHTML = `<div class="chat-msg agent text-danger">Lỗi kết nối: ${err.message}</div>`;
+    if (list) list.innerHTML = `<div class="chat-msg agent text-danger">⚠️ Lỗi kết nối: ${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -1006,16 +1018,23 @@ function handleFeynmanChatSubmit(e) {
       student_answer: studentAnswer,
     }),
   })
-    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    // Safe JSON parse: tránh crash khi server trả plain text 500
+    .then(res => res.text().then(text => {
+      let data = {};
+      try { data = JSON.parse(text); } catch (_) {
+        return { ok: false, data: { detail: 'Máy chủ đang khởi động lại, vui lòng thử lại sau.' } };
+      }
+      return { ok: res.ok, data };
+    }))
     .then(({ ok, data }) => {
       if (ok && data.reply) {
         aiBubble.innerHTML = `<strong>Học sinh AI (Tò mò):</strong><div class="markdown-body mt-1">${renderMarkdown(data.reply)}</div>`;
       } else {
-        aiBubble.innerHTML = `<strong>Lỗi:</strong> ${data.detail || 'Không nhận được phản hồi.'}`;
+        aiBubble.innerHTML = `<strong>⚠️ Lỗi:</strong> ${escapeHtml(data.detail || 'Không nhận được phản hồi.')}`;
       }
     })
     .catch(err => {
-      aiBubble.innerHTML = `<strong>Lỗi kết nối:</strong> ${err.message}`;
+      aiBubble.innerHTML = `<strong>⚠️ Lỗi kết nối:</strong> ${escapeHtml(err.message)}`;
     })
     .finally(() => {
       if (btnSend) btnSend.disabled = false;
@@ -1077,7 +1096,15 @@ async function handleChatbotSubmit(event) {
     (chatbotFormEl && chatbotFormEl.dataset.pendingSearchQuery)
       ? chatbotFormEl.dataset.pendingSearchQuery
       : currentSearchQuery;
-  if (chatbotFormEl) delete chatbotFormEl.dataset.pendingSearchQuery; // xóa ngay sau khi đọc
+  // Fix Bug #3: Đọc question_id để gửi lên backend kích hoạt MCQ-aware mode
+  const questionIdToSend =
+    (chatbotFormEl && chatbotFormEl.dataset.pendingQuestionId)
+      ? chatbotFormEl.dataset.pendingQuestionId
+      : null;
+  if (chatbotFormEl) {
+    delete chatbotFormEl.dataset.pendingSearchQuery; // xóa ngay sau khi đọc
+    delete chatbotFormEl.dataset.pendingQuestionId;  // xóa ngay sau khi đọc
+  }
   currentSearchQuery = null; // reset biến global
 
   const chatbotInput = document.getElementById('chatbot-input');
@@ -1115,7 +1142,8 @@ async function handleChatbotSubmit(event) {
       body: JSON.stringify({
         lesson_code: currentStudentPack.lesson_code,
         question: question,
-        search_query: searchQueryToSend
+        search_query: searchQueryToSend,
+        question_id: questionIdToSend  // Fix Bug #3: kích hoạt MCQ-aware mode ở backend
       })
     });
 
