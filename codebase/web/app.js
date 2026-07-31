@@ -137,6 +137,8 @@ function handleTeacherUpload(e) {
   const pdfFile = pdfFileInput ? pdfFileInput.files[0] : null;
   const teacherNotes = document.getElementById('teacher-notes').value.trim();
 
+  const codeToUse = lessonCode || 'DAY_01';
+
   if (!pdfFile) {
     alert("Vui lòng chọn file Slide PDF!");
     return;
@@ -144,8 +146,8 @@ function handleTeacherUpload(e) {
 
   const formData = new FormData();
   formData.append('file', pdfFile);
-  formData.append('lesson_code', lessonCode);
-  formData.append('title', lessonTitle);
+  formData.append('lesson_code', codeToUse);
+  formData.append('title', lessonTitle || codeToUse);
   formData.append('teacher_notes', teacherNotes);
 
   const teacherProgress = document.getElementById('teacher-progress');
@@ -165,7 +167,15 @@ function handleTeacherUpload(e) {
     .then(res => res.json().then(data => ({ ok: res.ok, data })))
     .then(({ ok, data }) => {
       if (!ok) {
-        alert(`Lỗi: ${data.detail || 'Không thể tạo DRAFT bài học'}`);
+        let errStr = 'Không thể tạo DRAFT bài học';
+        if (data.detail) {
+          if (typeof data.detail === 'string') {
+            errStr = data.detail;
+          } else if (Array.isArray(data.detail)) {
+            errStr = data.detail.map(d => d.msg || JSON.stringify(d)).join('\n');
+          }
+        }
+        alert(`Lỗi: ${errStr}`);
         return;
       }
 
@@ -1098,20 +1108,23 @@ async function handleChatbotSubmit(event) {
     chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
   }
 
-  const transcriptFile = getTranscriptFilename(currentStudentPack.lesson_code);
-
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        transcript: transcriptFile,
+        lesson_code: currentStudentPack.lesson_code,
         question: question,
         search_query: searchQueryToSend
       })
     });
 
-    const payload = await response.json();
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch (parseErr) {
+      payload = { detail: `Lỗi xử lý phản hồi từ máy chủ (mã HTTP ${response.status}).` };
+    }
     typingMsg.remove();
 
     if (response.status === 429) {
@@ -1129,7 +1142,7 @@ async function handleChatbotSubmit(event) {
     } else {
       const assistantMsg = document.createElement('div');
       assistantMsg.className = 'chat-message assistant';
-      assistantMsg.append(formatAssistantResponseText(payload.answer));
+      assistantMsg.append(formatAssistantResponseText(payload.answer || ''));
       if (chatbotMessages) chatbotMessages.append(assistantMsg);
     }
   } catch (error) {
@@ -1217,14 +1230,44 @@ async function openCitation(code) {
 document.addEventListener('DOMContentLoaded', () => {
   console.log("🚀 10M Study Pack Web App initialized.");
 
-  // File Upload listener
+  // File Upload Drop Zone & Picker listeners
+  const dropZone = document.getElementById('file-drop-zone');
   const pdfFileInput = document.getElementById('pdf-file');
   const fileSelectedName = document.getElementById('file-selected-name');
+
   if (pdfFileInput && fileSelectedName) {
     pdfFileInput.addEventListener('change', (e) => {
       if (e.target.files && e.target.files[0]) {
         fileSelectedName.textContent = `📄 File đã chọn: ${e.target.files[0].name} (${(e.target.files[0].size / 1024 / 1024).toFixed(2)} MB)`;
         fileSelectedName.hidden = false;
+      }
+    });
+  }
+
+  if (dropZone && pdfFileInput) {
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt ? dt.files : null;
+      if (files && files.length > 0) {
+        pdfFileInput.files = files;
+        const changeEvent = new Event('change', { bubbles: true });
+        pdfFileInput.dispatchEvent(changeEvent);
       }
     });
   }

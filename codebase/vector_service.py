@@ -1,6 +1,6 @@
 """
 Vector DB Pipeline for chunking documents and syncing embeddings in ChromaDB.
-Automatic deletion of old chunks by lesson_code upon publish/update (versioning).
+Purges old chunks by lesson_code upon publish/update (versioning) and enforces metadata filtering.
 """
 
 import logging
@@ -12,9 +12,10 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger("VectorService")
 
 CHROMA_DIR = Path(__file__).parent / "chroma_db"
+CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def _chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
+def _chunk_text(text: str, chunk_size: int = 400, overlap: int = 50) -> List[str]:
     """Simple paragraph/word chunking utility."""
     if not text:
         return []
@@ -27,7 +28,6 @@ def _chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str
         para_len = len(para)
         if current_length + para_len > chunk_size and current_chunk:
             chunks.append("\n\n".join(current_chunk))
-            # keep overlap
             current_chunk = [para]
             current_length = para_len
         else:
@@ -40,43 +40,38 @@ def _chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str
     return [c.strip() for c in chunks if c.strip()]
 
 
-class SimpleEmbeddingFunction:
-    name: str = "SimpleEmbeddingFunction"
-
-    def __call__(self, input: List[str]) -> List[List[float]]:
-        return [[0.1] * 384 for _ in input]
-
-    def name(self) -> str:
-        return self.name
-
 def _get_chroma_collection(client):
+    """Retrieve or create ChromaDB collection for Study Pack lessons."""
     try:
-        return client.get_collection(name="studypack_lessons")
-    except Exception:
-        try:
-            return client.get_or_create_collection(name="studypack_lessons", embedding_function=SimpleEmbeddingFunction())
-        except Exception:
-            return client.get_or_create_collection(name="studypack_lessons")
+        return client.get_or_create_collection(name="studypack_lessons")
+    except Exception as err:
+        logger.warning(f"Error initializing ChromaDB collection: {err}")
+        return client.create_collection(name="studypack_lessons")
 
 
-def sync_vector_db(lesson_code: str, pdf_markdown: str, enrich_summary: str) -> Dict[str, Any]:
+def sync_vector_db(
+    lesson_code: str,
+    pdf_markdown: str,
+    enrich_summary: str,
+    teacher_notes: Optional[str] = "",
+) -> Dict[str, Any]:
     """Sync Vector DB for a specific lesson_code.
 
-    Deletes all previous vector embeddings matching lesson_code and indexes
-    new chunks from PDF Markdown and Enrich Summary.
+    PURGES (deletes) all previous vector embeddings matching lesson_code and indexes
+    new chunks from PDF Markdown, Enrich Summary, and Teacher Notes.
 
     Args:
-        lesson_code: Unique code of the lesson (e.g. 'DAY_04')
+        lesson_code: Unique code of the lesson (e.g. 'DAY_01')
         pdf_markdown: Extracted raw slide markdown text
         enrich_summary: 10-minute enriched summary text
+        teacher_notes: Speaker/lecture notes from teacher
 
     Returns:
         Dict with status and number of indexed chunks.
     """
     pdf_chunks = _chunk_text(pdf_markdown, chunk_size=400)
     summary_chunks = _chunk_text(enrich_summary, chunk_size=300)
-
-    total_chunks = len(pdf_chunks) + len(summary_chunks)
+    notes_chunks = _chunk_text(teacher_notes or "", chunk_size=300)
 
     try:
         import chromadb
@@ -84,12 +79,12 @@ def sync_vector_db(lesson_code: str, pdf_markdown: str, enrich_summary: str) -> 
         client = chromadb.PersistentClient(path=str(CHROMA_DIR))
         collection = _get_chroma_collection(client)
 
-        # Step 1: Remove old chunks matching lesson_code
+        # Step 1: Purge old chunks matching lesson_code to prevent stale data
         try:
             collection.delete(where={"lesson_code": lesson_code})
-            logger.info(f"Deleted old vector chunks for lesson_code: {lesson_code}")
+            logger.info(f"Successfully purged old vector chunks for lesson_code: {lesson_code}")
         except Exception as del_err:
-            logger.warning(f"No previous chunks deleted or error: {del_err}")
+            logger.warning(f"No previous chunks found or delete skipped for {lesson_code}: {del_err}")
 
         # Step 2: Prepare new documents & metadata
         documents = []
@@ -98,13 +93,18 @@ def sync_vector_db(lesson_code: str, pdf_markdown: str, enrich_summary: str) -> 
 
         for idx, chunk in enumerate(pdf_chunks):
             documents.append(chunk)
-            metadatas.append({"lesson_code": lesson_code, "type": "pdf_slide"})
+            metadatas.append({"lesson_code": lesson_code, "status": "PUBLISHED", "type": "pdf_slide"})
             ids.append(f"{lesson_code}_pdf_{idx}")
 
         for idx, chunk in enumerate(summary_chunks):
             documents.append(chunk)
-            metadatas.append({"lesson_code": lesson_code, "type": "enrich_summary"})
+            metadatas.append({"lesson_code": lesson_code, "status": "PUBLISHED", "type": "enrich_summary"})
             ids.append(f"{lesson_code}_sum_{idx}")
+
+        for idx, chunk in enumerate(notes_chunks):
+            documents.append(chunk)
+            metadatas.append({"lesson_code": lesson_code, "status": "PUBLISHED", "type": "teacher_notes"})
+            ids.append(f"{lesson_code}_note_{idx}")
 
         if documents:
             collection.add(
@@ -117,23 +117,22 @@ def sync_vector_db(lesson_code: str, pdf_markdown: str, enrich_summary: str) -> 
             "status": "success",
             "provider": "ChromaDB",
             "lesson_code": lesson_code,
-            "deleted_old": True,
+            "purged_old": True,
             "indexed_chunks": len(documents),
         }
 
     except Exception as err:
-        logger.error(f"ChromaDB sync failed: {err}. Using fallback index.")
+        logger.error(f"ChromaDB sync exception: {err}")
         return {
-            "status": "success_fallback",
-            "provider": "LocalFallbackIndex",
+            "status": "error",
+            "provider": "ChromaDB",
             "lesson_code": lesson_code,
-            "deleted_old": True,
-            "indexed_chunks": total_chunks,
+            "detail": str(err),
         }
 
 
-def query_vector_db(lesson_code: str, query: str, n_results: int = 3) -> List[str]:
-    """Query ChromaDB for relevant text chunks filtered by lesson_code.
+def query_vector_db(lesson_code: str, query: str, n_results: int = 4) -> List[str]:
+    """Query ChromaDB for relevant text chunks filtered strictly by lesson_code.
 
     Args:
         lesson_code: Unique code of the lesson to filter by.
@@ -143,6 +142,9 @@ def query_vector_db(lesson_code: str, query: str, n_results: int = 3) -> List[st
     Returns:
         List of matching document chunk strings.
     """
+    if not query or not query.strip():
+        return []
+
     try:
         import chromadb
 
@@ -159,6 +161,5 @@ def query_vector_db(lesson_code: str, query: str, n_results: int = 3) -> List[st
         return docs if docs else []
 
     except Exception as err:
-        logger.warning(f"ChromaDB query failed: {err}. Returning empty context.")
+        logger.warning(f"ChromaDB query failed for {lesson_code}: {err}")
         return []
-

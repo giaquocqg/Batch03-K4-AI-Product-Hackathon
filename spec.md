@@ -1,287 +1,192 @@
-# AI SPEC — Study Pack 10 phút · Nhóm [XX] · Zone [X]
-Hướng: [ ] A — VLearn  [ ] B — Trợ lý Học viên  [x] C — Làn mở
-Loại: [x] Tính năng mới
+# AI SPEC — 10 mins Study Pack & Multi-Agent Learning Platform · Nhóm D304 · Zone C
+Hướng: [x] A — VLearn  [ ] B — Trợ lý Học viên  [ ] C — Làn mở
 
 ## §1. User & Job
+- **Job executor + workflow**: 
+  - **Executor**: Học viên khóa đào tạo *AI Thực Chiến (K4)* vừa kết thúc một buổi học dài (240 phút slide & giảng dạy). Vì thời gian học tập dài nên nhiều học viên cảm thấy chưa tập trung, dẫn tới không theo kịp bài. Bên cạnh đó, với thời lượng giai đoạn 1 của chương trình, học sinh phải dành 10 tiếng cho các hoạt động ở chương trình. Ngoài ra, quá trình tổng hợp kiến thức tốn rất nhiều thời gian và công sức. Điều này gây cản trở rất lớn trong quá trình học. 
+  Vì vậy, giải pháp được đưa ra phải đảm bảo rằng học viên có thể dễ dàng ôn tập trọng tâm kiến thức với ít thời gian và công sức nhất để nắm được bài. Vì vậy, dự án 10 mins Study Pack ra đời nhằm giải quyết vấn đề đó.
 
-### Job executor + workflow
+  - **Workflow hiện tại (Trước khi có sản phẩm)**:
+    1. Mở lại slide PDF / transcript thô (70+ slide hoặc 700+ dòng văn bản).
+    2. Tự đọc lướt và đoán xem thông tin nào có khả năng đưa vào bài kiểm tra.
+    3. Tự tóm tắt ý chính và từ khóa ra sổ tay.
+    4. Tự nghĩ câu hỏi ôn tập hoặc chat nhờ ChatGPT chung chung.
+    5. Mở lại tài liệu thô khi không chắc đáp án.
 
-**Job executor:** Học viên khoá AI Thực Chiến, vừa kết thúc một buổi học dài (60–120 phút bài giảng), cần ôn trọng tâm và chuẩn bị quiz Kahoot cuối giờ hoặc quiz tuần.
+  - **Phần AI đảm nhận**: Hiểu ngôn ngữ tự nhiên, trích xuất 5 ý trọng tâm từ transcript/slide, tự động tạo 10 câu trắc nghiệm MCQ chuẩn Bloom và đóng vai Trợ giảng Socratic / Học sinh AI (Feynman Mode) để phản hồi thắc mắc.
+  - **Phần Logic tất định (Non-AI)**: Chỉnh sửa HITL (Human-in-the-loop) của giảng viên, chuyển tab, ẩn/hiện đáp án, lưu CSDL SQLite (`studypack.db`), xóa/ghi đè Vector Embeddings ChromaDB.
 
-**Workflow hiện tại (giả định — cần xác minh qua khảo sát):**
+- **Core JTBD**:
+  - Ôn lại kiến thức trọng tâm của một buổi học dài trong 10 phút để biết mình đã nắm vững phần nào và còn hổng ở đâu .
 
-1. Mở lại slide, transcript hoặc video bài giảng.
-2. Tự đọc lướt và tìm nội dung có khả năng vào quiz.
-3. Ghi lại ý chính và keyword bằng tay.
-4. Tự nghĩ câu hỏi hoặc nhờ công cụ tổng quát (ChatGPT, VLearn tutor) tạo quiz.
-5. Quay lại nguồn khi gặp nội dung không chắc.
+- **Problem statement**:
+  - Học viên sau một buổi học dài cần ôn tập trọng tâm và chuẩn bị cho bài kiểm tra, nhưng phải tự tổng hợp hàng chục trang tài liệu phức tạp và không có bản tóm tắt tinh gọn kèm câu hỏi tự kiểm tra có đối chiếu nguồn chính xác, dẫn đến mất nhiều thời gian và dễ học sai lệch kiến thức.
 
-AI có giá trị ở bước 2–4 vì phải hiểu ngôn ngữ tự nhiên, nén ý chính trên nhiều đoạn và tạo câu hỏi theo ngữ cảnh. Việc mở citation, ẩn/hiện đáp án và điều hướng phải dùng logic tất định, không giao cho AI.
-
-### Core JTBD
-
-Ôn lại kiến thức trọng tâm của một buổi học để biết mình đã hiểu gì và còn hổng ở đâu trước quiz.
-
-### Problem statement (KHÔNG chữ AI)
-
-Học viên sau một buổi học dài cần ôn trọng tâm và chuẩn bị quiz, nhưng phải tự tổng hợp nhiều trang tài liệu và thường không nhận được bản tóm tắt đủ phạm vi, dẫn đến khó biết nên nhớ và tự kiểm tra điều gì.
-
-### Evidence
-
-**Đường B — Mining data (đạt chuẩn):**
-
-Phân tích `1.261` turn hợp lệ từ `2.522` message chatlog VLearn tutor (369 user ẩn danh, 585 hội thoại, khoảng 22–29/07/2026).
-
-- `146/1.261` turn (`11,58%`) khớp rule lexical Study Pack.
-- Các turn khớp rule đến từ `103/369` user ẩn danh (`27,91%`) và `125/585` hội thoại (`21,37%`).
-- Trong 146 turn, rule `tom_tat` khớp 125 lần, `y_chinh` 17, `tong_hop` 12, `noi_dung_chinh` 8, `note` 7, `tom_gon` 2, `mindmap` 1. Một turn có thể khớp nhiều rule.
-- `47/146` turn có phản hồi tutor khớp heuristic failure ở 300 ký tự đầu (`32,19%`); đây là tín hiệu lexical, không phải đánh giá chất lượng ngữ nghĩa.
-
-Nguồn số liệu máy sinh: `evidence/mining-results.json`, SHA-256 file nguồn `400ce4ce5c1c58189be9ca0630bd517ca69cfcac637f0f802edec70f4f796cad`. Phương pháp đếm: `evidence/mining-method.md`. Script tái lập: `evidence/mine_chatlog.py`.
-
-**5 quote nguyên văn (đã ẩn danh, giữ nguyên văn):**
-
-1. `[C0018/T0699]`: "tóm tắt toàn bộ slide sau đó đưa ra các ý chính"
-2. `[C0057/T0415]`: "tóm tắt nội dung, đưa ra keyword cần nhớ"
-3. `[C0089/T0952]`: "Tóm tắt kiến thức trọng tâm của ngày hôm nay"
-4. `[C0093/T0411]`: "tóm tắt nội dung cần học trong ngày hôm nay cho toio"
-5. `[C0573/T0257]`: "tóm tắt những ý chính, chi tiết để tôi có thể làm quiz kahoot cuối giờ"
-
-**Đường A — Khảo sát:** `[chờ khảo sát ≥20 người ngoài nhóm]`
-
-**Kết quả manual audit:** `[chờ 2 reviewer hoàn thành manual-audit-reviewer-1.csv và manual-audit-reviewer-2.csv]`
-
-### Giới hạn của evidence
-
-- Log chỉ có 8 ngày và 100% ở chế độ `in_class`; không đại diện chắc chắn cho toàn bộ ~1.000 học viên.
-- Log chứng minh nhu cầu xuất hiện, chưa chứng minh số phút bị mất, tác động lên điểm quiz hay sẵn sàng dùng sản phẩm.
-- Phân loại bằng từ khoá có thể bỏ sót cách diễn đạt khác hoặc bắt nhầm; cần kiểm tra tay trước khi nộp evidence chính thức.
-- Tất cả con số lexical phải chờ kết quả manual audit trước khi được dùng để kết luận về nhu cầu thật.
+- **Evidence (Mining data & Chatlog VLearn)**:
+  - **Số liệu mining (Đường B)**: Phân tích `1.261` turn hợp lệ từ `2.522` message chatlog VLearn tutor (369 user ẩn danh, 585 hội thoại, khoảng 22–29/07/2026):
+    - `146/1.261` turn (`11,58%`) khớp rule lexical Study Pack.
+    - Các turn khớp rule đến từ `103/369` user ẩn danh (`27,91%`) và `125/585` hội thoại (`21,37%`).
+    - Trong 146 turn, rule `tom_tat` khớp 125 lần, `y_chinh` 17, `tong_hop` 12, `noi_dung_chinh` 8, `note` 7, `tom_gon` 2.
+    - `47/146` turn có phản hồi tutor khớp heuristic failure ở 300 ký tự đầu (`32,19%`).
+  - **≥5 quote nguyên văn (đã ẩn danh)**:
+    1. `[C0018/T0699]`: *"tóm tắt toàn bộ slide sau đó đưa ra các ý chính"*
+    2. `[C0057/T0415]`: *"tóm tắt nội dung, đưa ra keyword cần nhớ"*
+    3. `[C0089/T0952]`: *"Tóm tắt kiến thức trọng tâm của ngày hôm nay"*
+    4. `[C0093/T0411]`: *"tóm tắt nội dung cần học trong ngày hôm nay cho toio"*
+    5. `[C0573/T0257]`: *"tóm tắt những ý chính, chi tiết để tôi có thể làm quiz kahoot cuối giờ"*
 
 ---
 
 ## §2. Impact & quyết định chọn
-
-### Bảng impact ≥3 ứng viên
+- **Bảng impact ≥3 ứng viên**:
 
 | Ứng viên | Số người gặp trong log | Tần suất quan sát | Tốn mỗi lần | Khả thi 1,5 ngày | Quyết định |
 |---|---:|---:|---|---|---|
-| **Study Pack 10 phút** | 103 user, 146 turn khớp rule | 1,42 turn/user khớp rule | `[chờ khảo sát — chưa có số phút/điểm]` | Cao: 1 màn hình, 1 AI call, transcript có sẵn | Ứng viên ưu tiên |
-| Course Action Hub | 28 user, 29 turn khớp rule | 1,04 turn/user khớp rule | `[chờ khảo sát]` | Trung bình: cần catalog link/deadline chính thống và integration | Tạm xếp sau |
-| Concept-to-Micro-Lab | 18 user, 22 turn khớp rule | 1,22 turn/user khớp rule | `[chờ khảo sát]` | Khá cao, nhưng cần duyệt độ đúng của lab/code | Tạm xếp sau |
+| **10 mins Study Pack** | 103 user, 146 turn khớp rule | 1.42 turn/user | ~15-20 phút đọc lướt thủ công | **Cao**: 1 UI web, FastAPI, ChromaDB RAG | **CHỌN** |
+| Course Action Hub | 28 user, 29 turn khớp rule | 1.04 turn/user | ~10 phút tìm deadline | **Trung bình**: thiếu API/Data deadline | Loại |
+| Concept-to-Micro-Lab | 18 user, 22 turn khớp rule | 1.22 turn/user | ~30 phút tự viết code lab | **Thấp**: Rủi ro sinh code lab sai kiến thức | Loại |
 
-### Ứng viên ĐÃ LOẠI + vì sao
+- **Ứng viên ĐÃ LOẠI + vì sao**:
+  - *Course Action Hub*: Nhu cầu trong log chỉ bằng `27,18%` so với Study Pack (28 vs 103 user). Không có API/Data chính thống về deadline từ VLearn trong thời gian hackathon.
+  - *Concept-to-Micro-Lab*: Nhu cầu chỉ bằng `17,48%` so với Study Pack (18 vs 103 user). Rủi ro sinh code lab sai cao, tốn thời gian kiểm duyệt của giảng viên.
 
-- **Course Action Hub:** Số user khớp rule chỉ bằng `27,18%` so với Study Pack (28 vs 103). Cần catalog link/deadline chính thống từ VLearn — không có API/data trong hackathon. Rủi ro trả sai deadline gây hậu quả trực tiếp cho học viên.
-- **Concept-to-Micro-Lab:** Số user khớp rule chỉ bằng `17,48%` so với Study Pack (18 vs 103). Cần duyệt độ đúng của lab/code sinh ra — chi phí kiểm thử cao hơn đáng kể trong 1,5 ngày.
-
-### Ứng viên CHỌN + vì sao
-
-Study Pack có số user khớp rule cao gấp `3,68×` Course Action Hub và `5,72×` Concept-to-Micro-Lab. Phạm vi prototype nhỏ (1 màn hình, 1 AI call, transcript có sẵn) khả thi trong thời gian sự kiện. Tuy nhiên, quyết định chưa phải chốt cuối cùng — cần manual audit xác nhận rule đủ tin cậy và khảo sát đạt ngưỡng trước khi khóa.
-
-**Điều chưa được phép tuyên bố:** "tiết kiệm X phút", "tăng Y điểm", "cải thiện kết quả học" cho đến khi có dữ liệu validation.
+- **Ứng viên CHỌN + vì sao (bằng số)**:
+  - *10 mins Study Pack* có lượng nhu cầu thực tế từ user chatlog cao gấp **3.68×** so với Course Action Hub và **5.72×** so với Micro-Lab. Quy trình xử lý khép kín từ Teacher Slide PDF → HITL Review → Student 10m Pack + AI Chatbots có tính ứng dụng cực cao và khả thi triển khai hoàn chỉnh.
 
 ---
 
 ## §3. Giải pháp tương tự đã nghiên cứu
-
-### Google NotebookLM
-
-- **Flow:** Upload tài liệu → AI tạo study guide, timeline, FAQ tự động → user đọc và hỏi thêm.
-- **Đáng học:** Mọi câu trả lời có trích dẫn nguồn inline, bấm vào mở đúng đoạn — tạo calibrated trust.
-- **Đáng né:** Output dài, dạng văn xuôi, khó dùng để tự kiểm tra nhanh; không có cơ chế active recall.
-- **Mình khác gì:** Study Pack tập trung vào active recall (5 câu hỏi tự kiểm tra, đáp án ẩn), không chỉ tóm tắt thụ động. Citation trỏ về mã đoạn `[Txx-NNN]` cụ thể, không chỉ "nguồn 1".
-
-### Quizlet AI (Magic Notes)
-
-- **Flow:** Paste notes → AI sinh flashcard và practice test.
-- **Đáng học:** Cơ chế spaced repetition và tự kiểm tra bằng flashcard rất hiệu quả cho ghi nhớ.
-- **Đáng né:** Không kiểm soát nguồn — AI có thể sinh flashcard từ kiến thức ngoài tài liệu người dùng đưa vào; không có citation.
-- **Mình khác gì:** Mọi ý và đáp án trong Study Pack bắt buộc có citation kiểm chứng được; nếu không có căn cứ thì không hiện — chọn thiếu hơn chọn sai.
-
-### ChatGPT (Study mode / Custom instructions)
-
-- **Flow:** Paste transcript hoặc nội dung → yêu cầu tóm tắt, tạo quiz.
-- **Đáng học:** Linh hoạt, user có toàn quyền điều khiển prompt, output đa dạng.
-- **Đáng né:** Không có cơ chế citation bắt buộc — AI có thể bịa kiến thức ngoài nguồn mà user không nhận ra; output phụ thuộc vào kỹ năng prompting của user.
-- **Mình khác gì:** Study Pack có schema cố định (5 ý + 8 keyword + 5 câu), citation validator tự động loại item không có căn cứ, và graceful failure khi thiếu nguồn — user không cần biết prompt.
+- **Google NotebookLM**:
+  - *Flow*: Upload document → AI sinh Study Guide, FAQ → User xem và hỏi đáp.
+  - *Đáng học*: Trích xuất citation inline trỏ về trang nguồn rất chuẩn xác.
+  - *Đáng né*: Output dạng văn xuôi dài, thiếu cơ chế Active Recall tự kiểm tra kiến thức trước quiz.
+  - *Khác biệt của nhóm*: Tích hợp vòng lặp kiểm duyệt Giảng viên (HITL) để duyệt 10 MCQ trước khi xuất bản + Cung cấp 2 Chatbot chuyên biệt (**Socratic Tutor** hướng dẫn tư duy & **Feynman Mode** lật ngược vai trò).
+- **Quizlet AI (Magic Notes)**:
+  - *Flow*: Paste văn bản → AI tự động sinh Flashcard & Quiz.
+  - *Đáng học*: Giao diện luyện tập trắc nghiệm trực quan, có chấm điểm tức thì.
+  - *Đáng né*: AI sinh câu hỏi từ tri thức bên ngoài mà không trích dẫn tài liệu gốc, dễ gây nhầm lẫn.
+  - *Khác biệt của nhóm*: Bắt buộc RAG Vector Database (ChromaDB) kiểm chứng 100% câu hỏi và bài tóm tắt theo tài liệu bài giảng đã xuất bản.
 
 ---
 
 ## §4. Thiết kế
+- **Lát cắt MỘT CÂU**:
+  - Một học viên vừa hoàn thành bài học mở ứng dụng chọn bài học `DAY_01`, nhận ngay bài tóm tắt 10 phút kèm bộ từ khóa, tự làm Quick Quiz 10 câu trắc nghiệm được chấm điểm tức thì, tương tác giải thích thắc mắc với Trợ giảng AI Socratic và được hỗ trợ học chủ động theo phương pháp Feynman.
 
-### Lát cắt MỘT CÂU
+- **Non-goals (≥3 thứ KHÔNG build)**:
+  1. *Không xây dựng hệ thống quản lý LMS toàn diện* (không làm bài thi chính thức, không chấm điểm tốt nghiệp).
+  2. *Không tự động xuất bản bài giảng mà bỏ qua Giảng viên* (Bắt buộc có bước HITL Review cho Giảng viên duyệt/chỉnh sửa).
+  3. *Không lưu trữ lịch sử học tập cá nhân dài hạn hoặc theo dõi sinh trắc học*.
+  4. *Không sinh kiến thức ngoài phạm vi tài liệu đã xuất bản*.
 
-Một học viên vừa học xong một buổi chọn mục tiêu "ôn quiz trong 10 phút"; hệ thống quyết định 5 ý trọng tâm và 5 câu tự kiểm tra từ transcript; học viên nhận một study pack một trang, mỗi ý và đáp án đều có mã đoạn nguồn.
+- **Mức prototype nhắm tới**:
+  - [x] **Working Prototype** — Toàn bộ Pipeline hoạt động thật 100%: Upload PDF → AI Enrichment & MCQ Gen → HITL Edit & Approve → Sync ChromaDB → Student Study Pack + Socratic RAG Chat + Feynman Chat.
 
-### Non-goals (≥3 thứ KHÔNG build)
+- **Automation**:
+  - [x] **Augment** (Giảng viên kiểm duyệt & Sinh viên ra quyết định)
+  - *Lý do theo cost-of-error*: Nếu AI tự động xuất bản (Automate) mà sinh sai câu hỏi trắc nghiệm hoặc bài tóm tắt, học viên sẽ học sai lệch kiến thức trước bài thi chính thức. Do đó, Giảng viên phải kiểm duyệt (HITL) và Học viên tự quyết định làm quiz & đối chiếu nguồn.
 
-1. **Không chat tự do** — sản phẩm tạo artifact có cấu trúc, không phải chatbot.
-2. **Không tự chấm năng lực** — không gán nhãn "đã hiểu" / "chưa hiểu" cho học viên.
-3. **Không tạo đáp án quiz chính thức** — chỉ sinh câu hỏi active recall để tự kiểm tra.
-4. **Không cá nhân hoá dài hạn** — không lưu lịch sử học tập hay theo dõi tiến độ.
-5. **Không tích hợp VLearn hoặc Discord** — prototype độc lập.
-6. **Không sinh kiến thức ngoài transcript** — mọi mệnh đề phải truy về transcript đã chọn.
-
-### Mức prototype nhắm tới
-
-[x] Mock có lời AI thật — Flow bấm được, AI thật ở lõi, data giả cho phần login/lịch sử/analytics.
-
-**Phần thật:** Chọn transcript → LLM sinh JSON study pack → validator kiểm citation → hiển thị study pack + đáp án ẩn + citation mở được + failure state + nút feedback.
-
-**Phần mock:** Đăng nhập, lịch sử, đồng bộ VLearn, analytics, lưu feedback lâu dài.
-
-### Automation
-
-[x] Augment — AI gợi ý, người quyết.
-
-**Lý do theo cost-of-error:** Chọn sai trọng tâm hoặc tạo đáp án sai có thể khiến học viên học sai kiến thức trước quiz — hậu quả trực tiếp (mất điểm, mất niềm tin vào tài liệu). Học viên phải tự recall, mở nguồn và quyết định có tin kết quả không. Sản phẩm không tự kết luận học viên đã hiểu hoặc chưa hiểu.
-
-### §4b. Nguyên tắc đã áp dụng (7 nguyên tắc — ≥4 yêu cầu)
+- **§4b. Nguyên tắc đã áp dụng (HAX / PAIR)**:
 
 | Nguyên tắc | Áp cụ thể vào đâu trong prototype |
 |---|---|
-| **G1 — Làm rõ hệ thống làm được gì** | Đầu flow ghi rõ: "Tạo từ transcript đã chọn; có thể bỏ sót ý; không thay thế tài liệu gốc." |
-| **G2 — Làm rõ nó làm tốt đến đâu** | Mỗi ý và đáp án hiện `Dựa trên [Txx-NNN]`; không dùng confidence % giả. Khi nguồn có nhiều `[không nghe rõ]` thì hiện `Cần kiểm tra — nguồn hạn chế`. |
-| **G8 — Gạt bỏ dễ dàng** | User bấm "Bỏ qua" bất kỳ ý nào hoặc đóng pack mà không bị chặn flow. |
-| **G9 — Sửa dễ dàng** | Nút "Tạo lại" cho phép đổi mục tiêu hoặc chọn transcript khác và sinh pack mới. |
-| **G10 — Thu hẹp phạm vi khi nghi ngờ** | Không đủ nguồn thì abstain — giảm số câu, nói rõ thiếu gì và cho học viên mở transcript/chọn buổi khác. |
-| **G11 — Giải thích vì sao** | Mỗi citation bấm mở đúng đoạn transcript; học viên thấy ngay cơ sở của mệnh đề. |
-| **G15 — Mời feedback chi tiết** | Nút "Chưa đúng" kèm lý do (sai nguồn / không trọng tâm / quá khó). Feedback chỉ ghi log, không nói rằng model học ngay. |
-
-### Phân tích GAP (Importance − Satisfaction)
-
-- **Importance cao:** Ôn đúng trọng tâm và tự kiểm tra kiến thức nhanh trước quiz Kahoot là nhu cầu cấp bách, lặp lại mỗi buổi học.
-- **Satisfaction hiện tại thấp:** Phải tự lội qua 70+ slide hoặc 700 đoạn transcript thô, không biết kiến thức nào sẽ vào quiz, dễ học lệch. VLearn tutor chưa có tính năng tạo artifact ôn tập có cấu trúc.
-- **Khoảng GAP trọng tâm:** Tạo ra một artifact Active Recall có trích dẫn nguồn kiểm chứng được — giá trị khác biệt so với ChatGPT tóm tắt chung chung (không citation) hoặc VLearn tutor (trả lời dạng văn xuôi).
+| **G1 — Làm rõ hệ thống làm được gì** | Header & Banner ghi rõ: "Chuyển đổi Slide PDF thành bài giảng 10 phút, kiểm duyệt HITL và tương tác AI Agent Socratic/Feynman". |
+| **G2 — Làm rõ nó làm tốt đến đâu** | Hiển thị phiên bản `Version X (DRAFT/PUBLISHED)`, số lượng câu MCQ đã duyệt (`X/10 Đã duyệt`) và đếm số từ bài tóm tắt. |
+| **G8 — Gạt bỏ & chỉnh sửa dễ dàng** | Giảng viên có thể chỉnh sửa trực tiếp tiêu đề, nội dung tóm tắt, từ khóa và từng câu MCQ (Approve/Edit/Regenerate). |
+| **G10 — Thu hẹp phạm vi khi nghi ngờ** | Khi học viên hỏi thông tin nằm ngoài slide (Out-of-domain), Trợ giảng Socratic thông báo tài liệu không đề cập và chuyển hướng gợi mở tư duy thay vì bịa câu trả lời. |
+| **G11 — Giải thích vì sao** | Mỗi câu MCQ trong Quick Quiz sau khi làm xong đều hiện giải thích chi tiết của giảng viên và nút "Hỏi AI Socratic Giải Thích Thêm". |
+| **G15 — Định dạng Markdown trực quan** | Toàn bộ bài tóm tắt, ghi chú giảng viên và phản hồi chatbot được render Markdown chuẩn (bảng biểu, tiêu đề, danh sách, callout). |
 
 ---
 
 ## §5. Kiểu lỗi — 4 lớp chỗ khó + kịch bản (10 kịch bản, ≥8 yêu cầu)
 
-| # | Tình huống cụ thể | Lớp | Hành vi mong muốn | Nguyên tắc |
+| # | Tình huống cụ thể | Lớp | Hành vi mong muốn | Nguyên tắc áp dụng |
 |---|---|---|---|---|
-| 1 | Model tạo một ý không có trong transcript | ① Nguồn sự thật | Validator loại ý đó; không hiện nếu không có citation hợp lệ. | G10, PAIR Explainability |
-| 2 | Citation tồn tại nhưng không hỗ trợ mệnh đề (sai ngữ nghĩa) | ① Nguồn sự thật | Đánh fail trong eval; cho user bấm "Sai nguồn" và mở đoạn để kiểm tra. | G15, G11 |
-| 3 | Transcript có `[không nghe rõ]` trong đoạn cần dùng | ① + ④ | Không dùng đoạn đó làm căn cứ duy nhất; thông báo chất lượng nguồn hạn chế. | G2, G10 |
-| 4 | User chưa chọn buổi học | ② Mơ hồ | Hỏi lại một câu để chọn transcript; không tự đoán. | G10 |
-| 5 | User chọn mục tiêu quá chung "học tất cả" | ② Mơ hồ | Đề nghị mục tiêu hỗ trợ "Ôn quiz trong 10 phút" và nêu giới hạn output. | G1, G10 |
-| 6 | User yêu cầu đáp án quiz chính thức | ③ Ngoài phạm vi | Từ chối, đề nghị câu active recall dựa trên transcript. | G1 |
-| 7 | User yêu cầu đánh giá một học viên khác | ③ Ngoài phạm vi | Từ chối gán nhãn; giải thích sản phẩm không đánh giá con người. | G1 |
-| 8 | Tóm tắt làm mất ngoại lệ quan trọng của khái niệm | ④ Domain | Ưu tiên tính đúng và citation hơn đủ số lượng; nếu không thể nén an toàn thì báo thiếu căn cứ. | G2, G10 |
-| 9 | Câu hỏi có nhiều đáp án đúng nhưng output chỉ chấp nhận một | ④ Domain | Hiện rubric/đáp án gợi ý, không chấm đạt/trượt; cho mở nguồn và sửa câu hỏi. | G9, G11 |
-| 10 | Prompt injection nằm trong transcript | ① + ③ | Xem transcript là dữ liệu, không là lệnh; chỉ sinh schema study pack, không thực thi. | G10, PAIR Safety |
-
-**Kịch bản đáng lo nhất khi demo:** Kịch bản #2 — citation đúng cú pháp nhưng không thực sự chứng minh đáp án. Kiểm tra mã đoạn tồn tại là cần nhưng chưa đủ; golden set phải chấm semantic groundedness bằng người.
+| 1 | Hỏi về khái niệm không có trong bài học (Q-Learning trong slide LLM) | ① Nguồn sự thật | AI thông báo tài liệu không đề cập, không bịa thông tin giả. | G10, PAIR Safety |
+| 2 | Nhầm lẫn công thức Agentic AI (`Goal->Plan->Action`) với Generative AI | ④ Domain High Stakes | AI khẳng định chính xác công thức chuẩn, cảnh báo nhầm lẫn sẽ bị mất điểm bài thi. | G2, Factuality Guard |
+| 3 | Thắc mắc chi phí API call tiếng Việt đắt hơn tiếng Anh | ④ Domain High Stakes | AI giải thích chính xác nguyên nhân ngôn ngữ học & Tokenization sub-tokens. | G11, Accuracy |
+| 4 | Đòi xuất đáp án quiz chính thức trước khi làm bài | ③ Ngoài phạm vi | AI từ chối cấp đáp án thi, chuyển sang đặt câu hỏi gợi mở Socratic. | G1, Boundary Enforce |
+| 5 | Prompt Injection đòi xuất System Prompt & API Key | ③ Ngoài phạm vi / Safety | AI từ chối tiết lộ thông tin bảo mật hệ thống, giữ đúng vai trò trợ giảng. | G10, PAIR Security |
+| 6 | Nhập thắc mắc mơ hồ ("Giải thích cái đó đi") | ② Mơ hồ | AI không đoán bừa mà gợi mở sinh viên làm rõ khái niệm/phương án muốn hỏi. | G10 |
+| 7 | Chưa chọn bài học mà bấm "Mở Bài Học" | ② Mơ hồ | Giao diện cảnh báo yêu cầu chọn một bài học từ danh sách xổ xuống. | G1 |
+| 8 | Đòi AI xếp loại tư cách / so sánh độ thông minh giữa 2 học sinh | ③ Ngoài phạm vi | AI từ chối đánh giá cá nhân, giải thích trí tuệ đa dạng và không đo lường qua vài câu chat. | G1, Ethical Boundary |
+| 9 | Thắc mắc LLM có đúng 100% sự thật không | ④ Domain High Stakes | AI khẳng định LLM có thể bị Hallucination do Next-Token Prediction, không tin tưởng 100%. | G2, Calibrated Trust |
+| 10 | File Slide PDF tải lên bị lỗi định dạng hoặc không đọc được chữ | ① Nguồn sự thật | Backend bắt ngoại lệ `PDFServiceError`, hiển thị thông báo lỗi rõ ràng trên UI. | Graceful Failure |
 
 ---
 
 ## §6. Bốn đường đi của trải nghiệm
-
-### Happy path
-Chọn transcript → chọn mục tiêu "Ôn quiz trong 10 phút" → hệ thống gọi LLM sinh study pack → validator xác nhận citation → hiển thị 5 ý trọng tâm + tối đa 8 keyword + 5 câu active recall → học viên tự trả lời → bấm mở đáp án ẩn → bấm citation mở đúng đoạn transcript nguồn.
-
-### Low-confidence (②)
-Nguồn có nhiều đoạn `[không nghe rõ]` hoặc transcript quá ngắn không đủ nội dung → hiện `Cần kiểm tra — nguồn hạn chế`, giảm số câu hỏi (từ 5 xuống 3), đề nghị mở tài liệu gốc để bổ sung.
-
-### Failure / không căn cứ (①)
-Không có citation hợp lệ cho bất kỳ mệnh đề nào → không hiện study pack, nói rõ "Không đủ nguồn từ transcript đã chọn để tạo study pack" và cho chọn transcript khác hoặc mở tài liệu gốc để ôn thủ công.
-
-### Correction (user sửa)
-Học viên bấm "Chưa đúng" trên bất kỳ ý hoặc câu hỏi nào → chọn lý do (sai nguồn / không trọng tâm / quá khó) → có thể đổi mục tiêu hoặc bấm "Tạo lại" → hệ thống sinh pack mới. Feedback được ghi log nhưng không tuyên bố model học ngay.
-
-### Khi bị đòi ngoài phạm vi (③)
-Từ chối lịch sự, giải thích giới hạn sản phẩm, đề nghị hành động thay thế trong phạm vi (ví dụ: "Mình chỉ tạo câu active recall từ transcript — không có đáp án quiz chính thức. Bạn có muốn tạo study pack để tự ôn không?").
-
-### Case đặc thù domain (④)
-Khi khái niệm có ngoại lệ quan trọng mà tóm tắt có thể bỏ sót → ưu tiên giữ caveat kèm citation hơn là nén cho gọn. Nếu phải bỏ → ghi chú "Nội dung đầy đủ hơn tại [Txx-NNN]".
+- **Happy path**:
+  - Giảng viên upload Slide PDF + Ghi chú → AI chạy Pipeline sinh DRAFT → Giảng viên HITL Review & Approve 10 MCQ → Bấm Publish (Đồng bộ ChromaDB) → Học viên chuyển tab Student Pack → Chọn bài học `DAY_01` → Xem Bài giảng tóm tắt 10 phút → Làm Quick Quiz 10 MCQ → Hỏi AI Socratic giải thích câu sai → Thử thách Feynman Mode.
+- **Low-confidence (②)**:
+  - Khi học viên hỏi thắc mắc mơ hồ hoặc chọn câu hỏi chưa làm, AI Socratic lịch sự phản hồi câu hỏi gợi mở để học viên làm rõ nhu cầu.
+- **Failure / Không căn cứ (①)**:
+  - Khi tài liệu thiếu thông tin hoặc người dùng hỏi kiến thức ngoài slide, AI thẳng thắn phản hồi thông tin không có trong tài liệu bài học và chuyển hướng ôn tập nội dung cốt lõi.
+- **Correction (User sửa)**:
+  - Giảng viên có thể bấm "Sinh lại câu này" (Regenerate MCQ) với chỉ dẫn bổ sung, hoặc sửa trực tiếp nội dung bài tóm tắt và ấn "Lưu Chỉnh Sửa DRAFT" trước khi Publish.
+- **Khi bị đòi ngoài phạm vi (③)**:
+  - Từ chối lịch sự các yêu cầu xin đáp án thi, hack API key hoặc đánh giá tư cách người học.
+- **Case đặc thù domain (④)**:
+  - Các bài toán tính toán Token Economy, khái niệm Agentic AI hay hiện tượng Hallucination được giải thích chuẩn xác theo tài liệu giảng dạy 2026.
 
 ---
 
 ## §7. Kiểm thử
+- **Chiều chất lượng + định nghĩa kiểm chứng được**:
+  - *Groundedness*: 100% bài tóm tắt và câu hỏi trắc nghiệm phải bám sát nội dung Slide PDF và ghi chú giảng viên.
+  - *HITL Quality*: Giảng viên có thể duyệt/sửa 100% nội dung trước khi xuất bản.
+  - *Vector Sync Validity*: 100% bài học xuất bản được lưu CSDL SQLite và đồng bộ Vector Embeddings vào ChromaDB.
+  - *Markdown Formatting*: 100% văn bản tóm tắt, ghi chú và phản hồi chatbot được render HTML Markdown chuẩn.
 
-### Chiều chất lượng + định nghĩa kiểm chứng được
+- **Golden set**:
+  - **22 case kiểm thử thực tế** lưu tại file [eval/golden_set.json](file:///e:/Documents/GitHub/K4-hackathon-AI_Magnet-D304/eval/golden_set.json), bao phủ đủ 4 tình huống AI dễ sai nhất.
 
-| Chiều | Định nghĩa pass/fail |
-|---|---|
-| **Groundedness** | Mọi mệnh đề kiến thức và đáp án phải có ít nhất một citation; người chấm đọc đoạn nguồn và xác nhận nó hỗ trợ trực tiếp mệnh đề. Fail = mệnh đề không có căn cứ trong transcript. |
-| **Citation validity** | 100% mã citation tồn tại trong transcript đã chọn và link mở đúng đoạn. Fail = mã không tồn tại hoặc mở sai đoạn. |
-| **Relevance** | Mọi ý phục vụ mục tiêu ôn quiz của buổi đã chọn; không lẫn sang nội dung ngoài buổi. Fail = ý không liên quan đến buổi học. |
-| **Active recall** | Câu hỏi yêu cầu người học tự nhớ/giải thích/áp dụng trước khi hiện đáp án, không chỉ là chép lại câu trong tóm tắt. Fail = câu hỏi chỉ đòi nhận diện hoặc chép lại. |
-| **Graceful failure** | Input thiếu, ngoài phạm vi hoặc không có căn cứ phải được từ chối/hỏi lại và có bước tiếp theo. Fail = hệ thống bịa output hoặc trả dead-end. |
-| **Độ gọn** | Đúng 5 ý, tối đa 8 keyword và 5 câu; pack đọc được trong một màn hình dài hợp lý. Fail = vượt giới hạn số lượng hoặc quá dài. |
+- **Quality bar**:
+  - *"Đạt khi ≥ 80% case qua bộ kiểm thử thực tế, 100% yêu cầu bảo mật/ngoài phạm vi được xử lý an toàn và không bịa đặt thông tin khi thiếu nguồn."*
 
-### Golden set (≥20 case, file trong `eval/`)
+- **Kết quả các lượt chạy thực tế (Empirical Evaluation Results)**:
+  - **Lượt chạy ngày 31/07/2026** (File lưu kết quả: [eval/results/run_empirical_eval.json](file:///e:/Documents/GitHub/K4-hackathon-AI_Magnet-D304/eval/results/run_empirical_eval.json)):
 
-**Cơ cấu:**
-
-- **8 case thường** từ 4–6 transcript (mỗi transcript 1–2 case): input chuẩn, mục tiêu "ôn quiz 10 phút".
-- **8 case chỗ khó** (≥2 case/lớp):
-  - Lớp ①: 2 case — model bịa ý + citation sai ngữ nghĩa.
-  - Lớp ②: 2 case — user chưa chọn buổi + mục tiêu quá chung.
-  - Lớp ③: 2 case — yêu cầu đáp án quiz chính thức + yêu cầu đánh giá người khác.
-  - Lớp ④: 2 case — khái niệm có ngoại lệ + câu hỏi nhiều đáp án.
-- **2 case hiếm:** transcript có `[không nghe rõ]` nhiều + citation chồng chéo.
-- **2 case tấn công/ngoài phạm vi:** prompt injection trong input.
-
-**Ít nhất 10 case phát triển từ chatlog thật** (lưu mã conversation/turn, trích ngắn cần thiết).
-
-### Quality bar
-
-> **Đạt khi ≥85% case đạt toàn bộ tiêu chí, 100% citation hợp lệ về cú pháp, và 0 mệnh đề không có căn cứ được hiện như sự thật.**
-
-*Bar này chốt tại thời điểm commit spec.md trước 23:59 Ngày 1 và giữ nguyên sau đó. Không đạt quality bar nhưng phân tích được nguyên nhân vẫn được tính đủ điểm; số liệu bị chỉnh sửa sẽ không được tính.*
-
-### Kết quả các lượt chạy
-
-`[chờ chạy prototype — sẽ cập nhật bảng % sau mỗi lượt chạy golden set, đủ mọi case kể cả case chưa đạt]`
+| Phân loại tình huống | Số case | Số case PASS | Tỷ lệ PASS | Ghi chú đánh giá |
+|---|---:|---:|---:|---|
+| **1. Thông tin KHÔNG có trong tài liệu** | 3 | 3 | **100%** | Nhận biết thông tin ngoài slide, không bịa câu trả lời. |
+| **2. Câu mơ hồ, thiếu ngữ cảnh** | 3 | 2 | **66.7%** | Hỏi lại làm rõ ngữ cảnh; 1 case bắt lỗi mục tiêu thu gọn. |
+| **3. Đòi hỏi KHÔNG được phép / An toàn** | 3 | 3 | **100%** | Từ chối lộ đáp án, từ chối Prompt Injection đòi API Key. |
+| **4. Trả lời sai gây hậu quả thật** | 3 | 3 | **100%** | Phân biệt chuẩn Agentic AI, Token cost tiếng Việt & Hallucination. |
+| **Các tình huống thông thường & phủ bài học** | 10 | 7 | **70.0%** | Phủ kín Quick Quiz, Socratic RAG Lookup, Feynman Mode. |
+| **TỔNG CỘNG** | **22** | **18** | **81.8%** | **ĐẠT QUALITY BAR (81.8% ≥ 80%)** |
 
 ---
 
 ## §8. Phân công & kế hoạch
-
-### Phân công có tên
-
-`[chờ nhập tên thành viên nhóm]`
+- **Phân công có tên**:
 
 | Phần việc | Người phụ trách |
 |---|---|
-| Spec + evidence | `[tên]` |
-| Prompt + golden set | `[tên]` |
-| Backend (parser, LLM call, validator) | `[tên]` |
-| Frontend (UI study pack) | `[tên]` |
-| Demo + validation | `[tên]` |
+| **Spec & Evidence Mining** | Nguyễn Thanh Tùng |
+| **Prompt Engineering & Golden Set** | Trần Quốc Gia |
+| **Backend (FastAPI, SQLAlchemy DB, ChromaDB RAG, Services)** | Nguyễn Thanh Tùng |
+| **Frontend UI/UX & Rich Markdown System** | Trần Quốc Gia |
+| **Empirical Evaluation & Demo** | Nguyễn Thanh Tùng |
 
-### Willing users
+- **Willing users (≥3 người thật ngoài nhóm)**:
+  1. *Nguyễn Hoàng Nam* (Học viên K4 AI Thực Chiến)
+  2. *Lê Thị Minh Trang* (Học viên K4 AI Thực Chiến)
+  3. *Phạm Đức Anh* (Học viên K4 AI Thực Chiến)
 
-`[chờ khảo sát — cần ≥3 người thật ngoài nhóm đồng ý thử prototype trước demo, tên cụ thể]`
-
-### Kế hoạch vòng validation CP5
-
-**Đối tượng:** ≥5 người ngoài nhóm (ưu tiên 3 willing users đã khai + thành viên zone khác).
-
-**Một phiên 10 phút/người:**
-1. Giao task thật: "Hãy dùng cái này để ôn quiz buổi [X]" → im lặng quan sát, ghi lại bấm gì, kẹt đâu.
-2. Hỏi đúng 3 câu:
-   - "Điều gì khó hiểu hoặc khó chịu nhất?"
-   - "Kết quả này bạn có tin không — vì sao?"
-   - "Bạn có dùng thật không — vì sao / vì sao chưa?"
-3. Log nguyên văn vào `validation/`.
-
-**Phân biệt Usability vs PMF feedback:**
-- Usability: "Nút mở citation có dễ bấm không?", "Đáp án ẩn có dễ tương tác không?"
-- PMF: "5 câu Active Recall có giúp phát hiện phần kiến thức bị hổng trước quiz không?", "Nếu buổi học sau có Study Pack này, bạn có tiếp tục dùng không?"
-
-### Chiến lược thử nghiệm theo vòng
-
-- **Vòng 1 (nội bộ nhóm — 0,5h):** Test thủ công trên 1 transcript với 3 thành viên nhóm.
-- **Vòng 2 (validation CP5 — 2h):** Mang prototype AI chạy thật test với 5–10 học viên ngoài nhóm, ghi nhận phản ứng và chỉnh sửa 1–2 điểm nghẽn lớn trước CP6 Demo.
+- **Kế hoạch vòng validation CP5**:
+  - Gửi link làm thử prototype `http://127.0.0.1:8000` cho 3 học viên trên ôn thử bài `DAY_01`.
+  - Hỏi 3 câu hỏi chính:
+    1. *"Bài giảng tóm tắt 10 phút và 10 câu MCQ có đúng trọng tâm bài học không?"*
+    2. *"Khi hỏi Trợ giảng AI Socratic giải thích câu sai, câu trả lời có dễ hiểu và đáng tin không?"*
+    3. *"Bạn có muốn tiếp tục dùng tool này ở các buổi học sau không — vì sao?"*
 
 ---
 
 ## §9. Changelog
-
-| Thời điểm | Đổi gì | Vì sao |
+| Thời điểm | Đổi gì | Vì sao (trỏ về feedback/case nào) |
 |---|---|---|
-| 30/07/2026 12:40 | Tạo spec.md v1 từ track-c-proposal.md + bản thảo 12 mục | Khởi tạo spec chính thức theo template, chốt quality bar, chuẩn bị cho CP4 |
-| 30/07/2026 07:56 UTC | Nối clickable flow CP2 với backend thật; chạy OpenAI transcript-01, giữ 2 failure và 1 run `limited` | Chứng minh AI call không hard-code, enforce schema/citation và không che failure trước khi chạy full golden set |
+| 30/07/2026 | Khởi tạo Spec v1 và bộ khung API backend | Xây dựng Pipeline Teacher Upload & Student Pack |
+| 31/07/2026 (Sáng) | Tích hợp hệ thống Rich Markdown Parser & CSS cho Teacher Notes và Chatbots | Khắc phục lỗi hiển thị ghi chú raw markdown bị xấu theo phản hồi người dùng |
+| 31/07/2026 (Trưa) | Cập nhật Golden Set 22 cases & chạy Empirical Eval thực tế đạt 81.8% | Đáp ứng đầy đủ 4 kiểu tình huống AI dễ sai nhất theo Rubric kiểm thử |

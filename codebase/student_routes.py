@@ -165,6 +165,28 @@ async def chat_socratic_explain(
             correct_option = q_item.correct_option
             explanation = q_item.explanation or ""
 
+    # FIX: When question_id is missing, try fuzzy lookup by matching user_message
+    # against question_text in the DB for this lesson
+    if correct_option == "N/A" and payload.user_message:
+        _msg = payload.user_message[:120].strip()
+        if len(_msg) > 15:
+            lesson_obj = (
+                db.query(LessonDB)
+                .filter(
+                    (LessonDB.lesson_code == payload.lesson_code)
+                    | (LessonDB.id == payload.lesson_code),
+                )
+                .first()
+            )
+            if lesson_obj:
+                for q_candidate in lesson_obj.questions:
+                    if q_candidate.question_text[:50] in _msg or _msg[:50] in q_candidate.question_text:
+                        question_text = q_candidate.question_text
+                        options = q_candidate.get_options()
+                        correct_option = q_candidate.correct_option
+                        explanation = q_candidate.explanation or ""
+                        break
+
     res = explain_incorrect_answer(
         lesson_code=payload.lesson_code,
         question_text=question_text,
@@ -174,6 +196,7 @@ async def chat_socratic_explain(
         user_selected_option=payload.user_selected_option,
         user_message=payload.user_message,
         session_id=payload.session_id,
+        db=db,
     )
 
     return res

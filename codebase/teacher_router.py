@@ -319,6 +319,7 @@ async def publish_lesson(
         lesson_code=lesson.lesson_code,
         pdf_markdown=pdf_markdown,
         enrich_summary=lesson.enrich_summary or "",
+        teacher_notes=lesson.teacher_notes or "",
     )
 
     return {
