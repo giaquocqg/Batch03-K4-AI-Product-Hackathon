@@ -7,11 +7,6 @@
   <meta name="description"
     content="10 mins Study Pack — AI Agent Platform cho Giảng viên & Học viên với quy trình HITL Review và Vector DB Sync.">
   <title>10 mins Study Pack — Teacher Workspace & Student AI Platform</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -23,8 +18,8 @@
     <div class="nav-brand">
       <div class="logo-icon">10M</div>
       <div class="brand-text">
-        <span class="brand-title">Study Pack 10M</span>
-        <span class="brand-sub">AI Agent Platform & HITL</span>
+        <span class="brand-title">10 mins Study Pack</span>
+        <span class="brand-sub">Teacher Workspace & Student AI Platform</span>
       </div>
     </div>
 
@@ -49,8 +44,7 @@
       <div class="hero-card teacher-hero">
         <div class="hero-badge">Teacher HITL Workflow</div>
         <h1>Hệ Thống Biên Soạn Bài Giảng 10 Phút & Tạo Đề Trắc Nghiệm AI</h1>
-        <p>Tự động chuyển đổi Slide PDF + Teacher Notes thành Bài giảng 10 phút, tạo 10 câu trắc nghiệm chuẩn Bloom,
-          kiểm duyệt HITL và đồng bộ Vector DB.</p>
+        <p>Tự động chuyển đổi Slide PDF + Ghi chú thành Bài giảng 10 phút, tạo 10 câu trắc nghiệm, kiểm duyệt và đồng bộ Vector DB.</p>
       </div>
 
       <!-- Step 1: Upload & Process Form -->
@@ -59,7 +53,7 @@
           <div class="step-badge">Bước 1</div>
           <div>
             <h2>Upload Slide PDF & Ghi Chú Bài Giảng</h2>
-            <p>Tải lên Slide PDF và ghi chú để AI Enrichment & MCQ Agents khởi chạy Pipeline.</p>
+            <p>Tải lên Slide PDF và ghi chú để AI khởi chạy Pipeline biên soạn.</p>
           </div>
         </div>
 
@@ -71,8 +65,7 @@
 
           <div class="form-group">
             <label for="lesson-title">Tiêu đề bài học</label>
-            <input type="text" id="lesson-title" placeholder="Ví dụ: AI & LLM Foundation trong 10 phút"
-              value="AI & LLM Foundation 2026">
+            <input type="text" id="lesson-title" placeholder="Ví dụ: AI & LLM Foundation 2026" value="AI & LLM Foundation 2026">
           </div>
 
           <div class="form-group full-width">
@@ -87,8 +80,7 @@
 
           <div class="form-group full-width">
             <label for="teacher-notes">Speaker / Lecture Notes (Ghi chú bài giảng của GV)</label>
-            <textarea id="teacher-notes" rows="4"
-              placeholder="Nhập ghi chú giảng viên, trọng tâm cần nhấn mạnh hoặc ví dụ bài giảng..."></textarea>
+            <textarea id="teacher-notes" rows="3" placeholder="Nhập ghi chú giảng viên, trọng tâm cần nhấn mạnh..."></textarea>
           </div>
 
           <div class="form-actions full-width">
@@ -114,31 +106,31 @@
         <!-- Summary & Keywords Edit Card -->
         <div class="card hitl-summary-card">
           <div class="card-header border-bottom">
-            <div class="step-badge edit-badge">Bước 2 - HITL Review</div>
+            <div class="step-badge">Bước 2</div>
             <div>
               <h2>Chỉnh Sửa Bài Giảng Tóm Tắt & Từ Khóa</h2>
-              <p>Giảng viên kiểm duyệt và chỉnh sửa trực tiếp nội dung bài giảng 10 phút trước khi xuất bản.</p>
+              <p>Giảng viên kiểm duyệt và chỉnh sửa trực tiếp nội dung bài giảng trước khi xuất bản.</p>
             </div>
-            <div class="version-tag" id="hitl-version-badge">Version 1 (DRAFT)</div>
+            <div class="badge badge-warning" id="hitl-version-badge">DRAFT</div>
           </div>
 
           <div class="hitl-form">
-            <div class="form-group">
+            <div class="form-group mb-3">
               <label for="hitl-title">Tiêu đề bài học chính thức</label>
-              <input type="text" id="hitl-title" class="input-lg">
+              <input type="text" id="hitl-title">
             </div>
 
-            <div class="form-group">
+            <div class="form-group mb-3">
               <label for="hitl-summary">
                 Bài giảng tóm tắt 10 phút (300 - 500 từ)
-                <span id="word-count-badge" class="badge">0 từ</span>
+                <span id="word-count-badge" class="badge badge-primary">0 từ</span>
               </label>
-              <textarea id="hitl-summary" rows="12" class="summary-editor"></textarea>
+              <textarea id="hitl-summary" rows="10"></textarea>
             </div>
 
             <div class="form-group">
-              <label for="hitl-keywords">Từ khóa trọng tâm (Keywords - cách nhau bằng dấu phẩy)</label>
-              <input type="text" id="hitl-keywords" placeholder="LLM, Transformer, Self-Attention, Token Economy">
+              <label for="hitl-keywords">Từ khóa trọng tâm (cách nhau bằng dấu phẩy)</label>
+              <input type="text" id="hitl-keywords" placeholder="LLM, Transformer, Self-Attention">
             </div>
           </div>
         </div>
@@ -148,9 +140,9 @@
           <div class="card-header border-bottom">
             <div>
               <h2>Kiểm Duyệt 10 Câu Hỏi Trắc Nghiệm (MCQ Review)</h2>
-              <p>Giảng viên có thể Duyệt (Approve), Chỉnh sửa từng câu hoặc Yêu cầu AI Sinh lại (Regenerate).</p>
+              <p>Duyệt (Approve), Chỉnh sửa từng câu hoặc Yêu cầu AI Sinh lại (Regenerate).</p>
             </div>
-            <div class="mcq-stats">
+            <div>
               <span id="approved-count" class="badge badge-success">0/10 Đã duyệt</span>
             </div>
           </div>
@@ -161,13 +153,14 @@
         </div>
 
         <!-- Step 4: Publish & Sync Vector DB Action Bar -->
-        <div class="publish-bar card">
-          <div class="publish-info">
-            <h3>Sẵn sàng xuất bản bài học?</h3>
-            <p>Hệ thống sẽ lưu chính thức vào CSDL, tăng `version` nếu là bản cập nhật, và tự động xóa/ghi đè Vector
-              Embeddings cũ vào Vector DB (ChromaDB).</p>
+        <div class="card">
+          <div class="card-header border-bottom">
+            <div>
+              <h2>Sẵn sàng xuất bản bài học?</h2>
+              <p>Hệ thống sẽ lưu chính thức vào CSDL và tự động đồng bộ Embeddings vào ChromaDB.</p>
+            </div>
           </div>
-          <div class="publish-actions">
+          <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end;">
             <button type="button" id="btn-save-draft" class="btn btn-secondary" onclick="saveDraftReview()">
               <span>💾 Lưu Chỉnh Sửa DRAFT</span>
             </button>
@@ -178,10 +171,9 @@
         </div>
 
         <!-- Publish Result Alert -->
-        <div id="publish-alert" class="alert alert-success" hidden>
-          <div class="alert-icon">🎉</div>
+        <div id="publish-alert" class="card" hidden style="background: #E8FDF0; border-color: var(--success);">
           <div>
-            <h4 id="publish-alert-title">Xuất bản bài học thành công!</h4>
+            <h4 id="publish-alert-title" style="font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800;">🎉 Xuất bản bài học thành công!</h4>
             <p id="publish-alert-desc">Dữ liệu đã ghi vào CSDL và đồng bộ Vector Embeddings vào ChromaDB.</p>
           </div>
         </div>
@@ -190,8 +182,11 @@
 
       <!-- Published Lessons Management -->
       <div class="card list-card">
-        <div class="card-header">
-          <h2>Danh Sách Bài Học Đã Xuất Bản</h2>
+        <div class="card-header border-bottom">
+          <div>
+            <h2>Danh Sách Bài Học Đã Xuất Bản</h2>
+            <p>Các bài học công khai sẵn sàng cho học viên ôn tập.</p>
+          </div>
           <button class="btn btn-sm btn-outline" onclick="loadTeacherLessons()">🔄 Làm mới</button>
         </div>
         <div id="lessons-table-wrapper">
@@ -200,7 +195,6 @@
               <tr>
                 <th>Mã bài học</th>
                 <th>Tiêu đề</th>
-                <th>Version</th>
                 <th>Trạng thái</th>
                 <th>Số câu MCQ</th>
                 <th>Thao tác</th>
@@ -208,7 +202,7 @@
             </thead>
             <tbody id="teacher-lessons-tbody">
               <tr>
-                <td colspan="6" class="text-center">Đang tải danh sách bài học...</td>
+                <td colspan="5" style="text-align: center;">Đang tải danh sách bài học...</td>
               </tr>
             </tbody>
           </table>
@@ -221,196 +215,251 @@
     <!-- ================= STUDENT PACK WORKSPACE ================= -->
     <section id="student-view" class="view-section">
 
-      <div class="hero-card student-hero">
-        <div class="hero-badge">Student Active Learning & AI Agents</div>
-        <h1>10 mins Study Pack — Góc Học Viên & AI Tương Tác</h1>
-        <p>Đọc bài giảng tóm tắt 10 phút, kiểm tra kiến thức qua Quick Quiz 10 câu MCQ, nhận giải thích Socratic từ AI
-          và thử thách lật ngược vai trò với Feynman Mode.</p>
+      <!-- SCREEN 1: SETUP ROOM (Chỗ chọn bài học) -->
+      <div id="sp-screen-setup" class="student-sub-screen active">
+        <div class="hero-card student-hero">
+          <div class="hero-badge">Ôn trọng tâm · Làm trắc nghiệm · Trợ lý hỏi đáp</div>
+          <h1 style="font-family: 'Nunito', sans-serif; font-size: clamp(32px, 5vw, 56px); font-weight: 900;">Đừng đọc lại.<br><em style="font-style: normal; color: var(--clay-pink); text-shadow: 2px 2px 0 var(--ink), -2px 2px 0 var(--ink), -2px -2px 0 var(--ink), 2px -2px 0 var(--ink);">Hãy kiểm tra lại.</em></h1>
+          <p>Chọn bài học để ôn tập nhanh 5 ý trọng tâm và làm ngay quiz 10 câu trắc nghiệm. Sau khi nộp bài, trợ lý Chatbot AI sẽ xuất hiện giúp giải đáp thắc mắc.</p>
+        </div>
+
+        <!-- Setup Workbench Card -->
+        <div class="card" style="display: grid; grid-template-columns: 70px 1fr 1fr; gap: 24px; align-items: center; max-width: 900px; margin: 0 auto 30px;">
+          <div style="font-family: 'Nunito', sans-serif; font-size: 36px; font-weight: 800; color: var(--clay-purple); background: var(--ink); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">01</div>
+          <div>
+            <span class="hero-badge" style="font-size: 10px;">Thiết lập lượt ôn</span>
+            <h2 style="font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 800; margin-top: 4px;">Chọn đúng buổi học</h2>
+            <p style="font-size: 13.5px; color: var(--muted); font-weight: 600;">Hệ thống sẽ tải tóm tắt bài học cùng bộ 10 câu hỏi trắc nghiệm đã duyệt.</p>
+          </div>
+          <form id="student-lesson-form">
+            <div class="form-group mb-3">
+              <label for="student-lesson-select">Chọn bài học</label>
+              <select id="student-lesson-select" required style="height: 52px; font-weight: 700;">
+                <option value="">Đang tải danh sách bài học...</option>
+              </select>
+            </div>
+            <button type="submit" id="btn-open-pack" class="btn btn-primary btn-lg" style="width: 100%; justify-content: space-between;">
+              <span>Bắt đầu ôn tập</span><span aria-hidden="true">↗</span>
+            </button>
+          </form>
+        </div>
       </div>
 
-      <!-- Lesson Selector Card -->
-      <div class="card form-card">
-        <div class="card-header">
-          <div class="step-badge">Bước 1</div>
-          <div>
-            <h2>Chọn Bài Học Ôn Tập</h2>
-            <p>Chọn 1 bài học đã xuất bản từ giảng viên để xem Study Pack và tương tác với AI Agent.</p>
+
+      <!-- SCREEN 2: REVIEW ROOM (Bài giảng tóm tắt -> Ý chính -> Keyword) -->
+      <div id="sp-screen-review" class="student-sub-screen" hidden>
+        <div style="margin: 20px 0;">
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="btn btn-secondary back-to-setup-btn" type="button" onclick="showStudentScreen('sp-screen-setup')">← Chọn bài học khác</button>
+            <button class="btn btn-primary enter-feynman-btn" type="button" onclick="enterFeynmanMode()">🎓 Lật Ngược Vai Trò (Feynman Mode)</button>
+          </div>
+          <div style="margin-top: 12px;">
+            <h2 id="sp-review-title" style="font-family: 'Nunito', sans-serif; font-size: 32px; font-weight: 800;">Nội dung ôn tập</h2>
           </div>
         </div>
 
-        <form id="student-lesson-form" class="student-select-form">
-          <div class="form-group full-width">
-            <label for="student-lesson-select">Mã / Tiêu đề Bài học Published <span class="required">*</span></label>
-            <select id="student-lesson-select" class="input-lg" required>
-              <option value="">Đang tải danh sách bài học...</option>
-            </select>
+        <!-- Thẻ Bài Giảng Tóm Tắt 10 Phút -->
+        <div class="card">
+          <div class="card-header border-bottom">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h2>📖 Bài Giảng Tóm Tắt 10 Phút</h2>
+              <a id="sp-pdf-link" href="#" target="_blank" class="btn btn-outline btn-sm" hidden>📄 Xem Slide PDF Gốc</a>
+            </div>
           </div>
-          <div class="form-actions full-width">
-            <button type="submit" id="btn-open-pack" class="btn btn-primary btn-lg">
-              <span> Mở Bài Học (Study Pack)</span>
+          <div id="sp-enrich-summary" class="markdown-body" style="line-height: 1.7; font-weight: 600; font-size: 16px;"></div>
+        </div>
+
+        <!-- 5 Ý Trọng Tâm (Card 02) -->
+        <div class="card">
+          <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+            <span style="width: 32px; height: 32px; background: var(--ink); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">02</span>
+            <h3 style="font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800;">Ý trọng tâm</h3>
+          </div>
+          <ol id="sp-key-points-list" style="list-style: none; display: flex; flex-direction: column; gap: 12px;"></ol>
+        </div>
+
+        <!-- Keyword Cần Nhớ (Card 03) -->
+        <div class="card">
+          <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+            <span style="width: 32px; height: 32px; background: var(--ink); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">03</span>
+            <h3 style="font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800;">Keyword cần nhớ</h3>
+          </div>
+          <div id="sp-keywords-container" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+        </div>
+
+        <!-- Action Bar: Button Bắt Đầu Làm Quiz -->
+        <div style="margin: 30px 0; display: flex; justify-content: center;">
+          <button class="btn btn-success btn-lg" type="button" id="btn-start-student-quiz" style="width: 100%; max-width: 450px; min-height: 64px;">
+            <span>Làm Quiz Trắc Nghiệm (10 phút)</span><span aria-hidden="true">⏱️</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 5: FEYNMAN MODE ROOM (Lật Ngược Vai Trò) -->
+      <div id="sp-screen-feynman" class="student-sub-screen" hidden>
+        <div style="margin: 20px 0;">
+          <button class="btn btn-secondary back-to-review-btn" type="button" onclick="showStudentScreen('sp-screen-review')">← Quay lại tóm tắt bài học</button>
+        </div>
+
+        <div class="card feynman-card">
+          <div class="card-header border-bottom">
+            <div>
+              <h2 style="font-family: 'Nunito', sans-serif; font-size: 24px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <span class="mascot-avatar">
+                  <span class="mascot-eyes"><span class="eye"></span><span class="eye"></span></span>
+                  <span class="mascot-mouth"></span>
+                </span>
+                Feynman Mode — "Lật Ngược Vai Trò"
+              </h2>
+              <p style="font-size: 13.5px; color: var(--muted); font-weight: 600; margin-top: 4px;">Học sinh AI tò mò sẽ đặt câu hỏi nhờ bạn (Thầy giáo) giải thích để thử thách kiến thức!</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="btn-start-feynman">
+              <span>🚀 Khởi Tạo Chat Feynman</span>
             </button>
           </div>
-        </form>
-      </div>
 
-      <!-- Active Study Pack Container -->
-      <div id="student-pack-workspace" class="student-pack-container" hidden>
+          <div id="feynman-chat-container" hidden style="margin-top: 20px; border-top: 2px dashed var(--line); padding-top: 20px;">
+            <div id="feynman-messages-list" class="messages-list"></div>
 
-        <!-- Lesson Header Card -->
-        <div class="card student-pack-header">
-          <div class="pack-header-main">
-            <div>
-              <span class="badge badge-success" id="sp-version-badge">Version 1</span>
-              <h2 id="sp-title">Tiêu đề bài học</h2>
-              <p id="sp-code-sub" class="text-muted">Mã bài học: DAY_01</p>
-            </div>
-            <div class="pack-header-actions">
-              <a id="sp-pdf-link" href="#" target="_blank" class="btn btn-outline btn-sm" hidden>📄 Xem Slide PDF
-                Gốc</a>
-            </div>
-          </div>
-          <div class="keywords-box mt-3">
-            <strong>🔑 Từ khóa trọng tâm:</strong>
-            <div id="sp-keywords-container" class="keywords-list mt-1"></div>
-          </div>
-        </div>
-
-        <!-- Student Sub-Tabs Navigation -->
-        <div class="student-subtabs">
-          <button id="subtab-summary" class="subtab-btn active" onclick="switchStudentSubTab('summary')">
-            📖 1. Bài Giảng Tóm Tắt & PDF
-          </button>
-          <button id="subtab-quiz" class="subtab-btn" onclick="switchStudentSubTab('quiz')">
-            ✍️ 2. Quick Quiz 10 Câu MCQ
-          </button>
-          <button id="subtab-feynman" class="subtab-btn" onclick="switchStudentSubTab('feynman')">
-            🔄 3. Feynman Mode (Lật Ngược Vai Trò)
-          </button>
-        </div>
-
-        <!-- Tab 1: Enrich Summary & Teacher Notes -->
-        <div id="student-tab-summary" class="student-tab-content active">
-          <div class="card summary-card">
-            <div class="card-header border-bottom mb-3">
-              <h2>📖 Bài Giảng Tóm Tắt 10 Phút</h2>
-            </div>
-            <div id="sp-enrich-summary" class="enrich-summary-text markdown-body"></div>
-          </div>
-
-          <div id="sp-teacher-notes-card" class="card notes-card mt-4" hidden>
-            <div class="card-header border-bottom mb-3">
-              <div class="notes-header-badge">
-                <span class="badge badge-warning">📝 Ghi chú từ Giảng viên</span>
-              </div>
-              <h2 class="mt-1">Speaker & Lecture Notes</h2>
-            </div>
-            <div id="sp-teacher-notes" class="teacher-notes-body markdown-body"></div>
-          </div>
-        </div>
-
-        <!-- Tab 2: Quick Quiz 10 MCQs & Instant Grading -->
-        <div id="student-tab-quiz" class="student-tab-content">
-          <div class="card">
-            <div class="card-header border-bottom">
-              <div>
-                <h2>Quick Quiz 10 Câu Trắc Nghiệm</h2>
-                <p>Làm 10 câu MCQ để kiểm tra mức độ hiểu bài. Chấm điểm ngay lập tức và hỏi AI Socratic giải thích câu
-                  sai!</p>
-              </div>
-              <div id="quiz-score-badge" class="badge badge-primary" hidden>
-                Điểm số: <strong id="score-text">0/10</strong>
-              </div>
-            </div>
-
-            <form id="quiz-form">
-              <div id="quiz-questions-container" class="quiz-grid">
-                <!-- MCQ items injected by JS -->
-              </div>
-
-              <div class="quiz-submit-bar mt-4">
-                <button type="submit" id="btn-submit-quiz" class="btn btn-success btn-lg">
-                  <span>✅ Nộp Bài & Chấm Điểm Ngay</span>
-                </button>
-              </div>
+            <form id="feynman-chat-form" class="chat-input-box" style="margin-top: 16px;">
+              <textarea id="feynman-input" rows="3" placeholder="Nhập lời giải thích của Thầy giáo cho Học sinh AI..." required></textarea>
+              <button type="submit" id="btn-send-feynman" class="btn btn-primary">
+                <span>Gửi lời giải thích ➔</span>
+              </button>
             </form>
           </div>
         </div>
+      </div>
 
-        <!-- Tab 3: Feynman Mode (Reverse Role Chatbot) -->
-        <div id="student-tab-feynman" class="student-tab-content">
-          <div class="card feynman-card">
-            <div class="card-header border-bottom">
-              <div>
-                <h2>🔄 Feynman Mode — "Lật Ngược Vai Trò" (Chatbot 2)</h2>
-                <p>LLM đóng vai Học sinh tò mò nhờ bạn (đóng vai Thầy giáo/Chuyên gia) giải thích bài học này!</p>
-              </div>
-              <button type="button" class="btn btn-primary" onclick="startFeynmanChat()">
-                <span>🚀 Khởi Tạo Phiên Chat Feynman</span>
-              </button>
-            </div>
 
-            <div id="feynman-chat-container" class="chat-wrapper mt-3" hidden>
-              <div id="feynman-messages-list" class="messages-list"></div>
-
-              <form id="feynman-chat-form" class="chat-input-box mt-3">
-                <textarea id="feynman-input" rows="3" placeholder="Nhập lời giải thích của Thầy giáo cho Học sinh AI..."
-                  required></textarea>
-                <button type="submit" id="btn-send-feynman" class="btn btn-primary">
-                  <span>Gửi lời giải thích ➔</span>
-                </button>
-              </form>
-            </div>
+      <!-- SCREEN 3: VIRTUAL EXAM ROOM (Phòng Thi Ảo 10 Phút) -->
+      <div id="sp-screen-quiz" class="student-sub-screen" hidden>
+        <!-- Header Phòng Thi Ảo -->
+        <div class="quiz-header-static">
+          <div>
+            <h2 style="font-family: 'Nunito', sans-serif; font-size: 22px; font-weight: 800;">Phòng Thi Ảo 10 Phút</h2>
+            <p style="font-size: 13.5px; color: var(--muted); font-weight: 600;">Hãy tập trung hoàn thành 10 câu hỏi trắc nghiệm dưới đây.</p>
+          </div>
+          <div id="quiz-score-badge" class="badge badge-primary" hidden>
+            Điểm số: <strong id="score-text">0/10</strong>
+          </div>
+          <!-- Timer Trượt Cố Định (Bắt đầu nằm trong quiz-header-static) -->
+          <div id="quiz-floating-timer" class="timer-box-clay" hidden>
+            <span>⏱️</span>
+            <span id="quiz-timer-display">10:00</span>
           </div>
         </div>
 
+        <!-- Form containing MCQ questions -->
+        <div class="card">
+          <form id="quiz-form">
+            <div id="quiz-questions-container" class="quiz-grid">
+              <!-- MCQ items injected by JS -->
+            </div>
+
+            <div class="quiz-submit-bar" style="margin-top: 30px; display: flex; justify-content: center;">
+              <button type="submit" id="btn-submit-quiz" class="btn btn-success btn-lg" style="width: 100%; max-width: 400px;">
+                <span>✅ Nộp Bài & Chấm Điểm</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+
+      <!-- SCREEN 4: RESULTS & CHATBOT ROOM (Socratic / Feynman) -->
+      <div id="sp-screen-results" class="student-sub-screen" hidden>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+          <button class="btn btn-secondary" type="button" onclick="showStudentScreen('sp-screen-setup')">← Chọn bài học khác</button>
+          <button class="btn btn-primary" type="button" onclick="showStudentScreen('sp-screen-review')">📚 Xem lại tóm tắt</button>
+          <button class="btn btn-success enter-feynman-btn" type="button" onclick="enterFeynmanMode()">🎓 Lật Ngược Vai Trò (Feynman Mode)</button>
+        </div>
+
+        <div class="card" style="background: var(--clay-yellow); border-color: var(--ink);">
+          <h2 style="font-family: 'Nunito', sans-serif; font-size: 28px; font-weight: 900;">Kết Quả Ôn Tập: <span id="final-score-text">0/10</span></h2>
+          <p id="final-score-feedback" style="font-size: 15px; font-weight: 700; margin-top: 4px;">Bạn hãy rà soát lại các câu trả lời dưới đây.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+          <!-- Cột Trái: Trắc nghiệm đã chấm điểm -->
+          <div id="graded-quiz-container"></div>
+
+          <!-- Cột Phải: Chatbot AI RAG Trợ Lý -->
+          <aside class="right-panel" id="chatbot-panel">
+            <div class="chatbot-header">
+              <div class="chatbot-title-area">
+                <div class="mascot-wrapper">
+                  <div class="mascot-avatar">
+                    <div class="mascot-eyes">
+                      <div class="eye"></div>
+                      <div class="eye"></div>
+                    </div>
+                    <div class="mascot-mouth"></div>
+                  </div>
+                  <h4>Trợ lý Học tập AI</h4>
+                </div>
+              </div>
+            </div>
+
+            <div class="chatbot-chat-area" id="chatbot-messages">
+              <div class="chat-message system">
+                <p>Chào bạn! Tôi là trợ lý RAG. Hãy hỏi tôi về bài giảng này. Tất cả câu trả lời của tôi đều có trích dẫn mã đoạn <code>[Txx-NNN]</code> để bạn kiểm chứng.</p>
+              </div>
+            </div>
+
+            <!-- Các câu hỏi gợi ý nhanh -->
+            <div class="quick-prompts" id="quick-prompts-container">
+              <span class="quick-prompt-label">Gợi ý nhanh:</span>
+              <div class="quick-prompts-chips" id="quick-chips">
+                <!-- Sẽ được fill động tùy bài học -->
+              </div>
+            </div>
+
+            <form class="chatbot-input-area" id="chatbot-form">
+              <input type="text" id="chatbot-input" placeholder="Nhập câu hỏi tại đây..." required autocomplete="off">
+              <button type="submit" class="chat-submit-btn" aria-label="Gửi">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </form>
+          </aside>
+        </div>
       </div>
 
     </section>
 
   </main>
 
-  <!-- Socratic Tutor Chatbot Dialog Modal -->
-  <dialog id="socratic-dialog" class="custom-dialog chat-dialog">
-    <button type="button" class="dialog-close" onclick="closeSocraticModal()">×</button>
-    <div class="dialog-content">
-      <div class="dialog-badge">🤖 Chatbot 1: Socratic Tutor Agent</div>
-      <h3 id="soc-q-title">Giải Thích & Hướng Dẫn Tư Duy Câu Sai</h3>
-      <p id="soc-q-sub" class="text-muted"></p>
 
-      <div id="socratic-messages-list" class="messages-list mt-3"></div>
-
-      <form id="socratic-chat-form" class="chat-input-box mt-3">
-        <input type="hidden" id="soc-lesson-code">
-        <input type="hidden" id="soc-question-id">
-        <input type="hidden" id="soc-user-option">
-        <input type="hidden" id="soc-session-id">
-
-        <input type="text" id="soc-user-input" placeholder="Hỏi thêm trợ giảng Socratic về câu hỏi này..." required>
-        <button type="submit" class="btn btn-primary">
-          <span>Gửi ➔</span>
-        </button>
-      </form>
-    </div>
-  </dialog>
 
   <!-- Single MCQ Regenerate Modal -->
   <dialog id="regen-mcq-dialog" class="custom-dialog">
     <button type="button" class="dialog-close" onclick="document.querySelector('#regen-mcq-dialog').close()">×</button>
-    <div class="dialog-content">
-      <h3>Tạo Lại Câu Hỏi Trắc Nghiệm này bằng AI</h3>
-      <p>Nhập chỉ dẫn thêm cho AI nếu muốn thay đổi góc độ câu hỏi (ví dụ: "Tạo câu hỏi độ khó cao hơn" hoặc "Tập trung
-        vào ví dụ thực tế").</p>
+    <div>
+      <h3 style="font-family: 'Nunito', sans-serif; font-size: 20px; font-weight: 800;">Tạo Lại Câu Hỏi Trắc Nghiệm bằng AI</h3>
+      <p style="font-size: 13.5px; color: var(--muted); margin-top: 4px;">Nhập chỉ dẫn thêm cho AI nếu muốn thay đổi góc độ câu hỏi.</p>
       <input type="hidden" id="regen-q-id">
-      <div class="form-group">
+      <div class="form-group" style="margin-top: 16px;">
         <label for="regen-instruction">Yêu cầu bổ sung (Tùy chọn)</label>
-        <textarea id="regen-instruction" rows="3" placeholder="Nhập chỉ dẫn chi tiết..."></textarea>
+        <textarea id="regen-instruction" rows="3" placeholder="Ví dụ: Tạo câu hỏi tập trung vào ứng dụng thực tế..."></textarea>
       </div>
-      <div class="dialog-actions">
-        <button type="button" class="btn btn-secondary"
-          onclick="document.querySelector('#regen-mcq-dialog').close()">Hủy</button>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" onclick="document.querySelector('#regen-mcq-dialog').close()">Hủy</button>
         <button type="button" class="btn btn-primary" onclick="confirmRegenerateMcq()">🚀 Sinh lại câu này</button>
       </div>
     </div>
+  </dialog>
+
+
+
+  <!-- Popup xem Citation -->
+  <dialog id="citation-dialog">
+    <button id="close-dialog" class="dialog-close" type="button" aria-label="Đóng">×</button>
+    <p class="eyebrow">Đoạn trích nguồn bài giảng</p>
+    <h2 id="citation-code">Citation</h2>
+    <p id="citation-text"></p>
+    <p id="citation-warning" class="citation-warning" hidden>Nguồn có đoạn [không nghe rõ], cần kiểm tra bản gốc.</p>
   </dialog>
 
   <script src="/app.js" defer></script>

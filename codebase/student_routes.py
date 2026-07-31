@@ -68,12 +68,28 @@ async def list_published_lessons(db: Session = Depends(get_db)):
     return {"lessons": result}
 
 
+import re
+
+def extract_key_points(summary_text: str) -> List[str]:
+    if not summary_text:
+        return []
+    lines = [line.strip() for line in summary_text.splitlines() if line.strip()]
+    bullets = [re.sub(r'^\s*[\-\*\d\.]+\s*', '', line) for line in lines if re.match(r'^\s*[\-\*\d\.]+\s+', line)]
+    if len(bullets) >= 3:
+        return bullets[:5]
+    paragraphs = [p.strip() for p in summary_text.split('\n\n') if p.strip() and not p.startswith('#')]
+    if len(paragraphs) >= 3:
+        return paragraphs[:5]
+    sentences = [s.strip() for s in re.split(r'[\.\!\?]\s+', summary_text) if s.strip()]
+    return sentences[:5]
+
+
 @router.get("/lessons/{lesson_code}")
 async def get_published_lesson(lesson_code: str, db: Session = Depends(get_db)):
     """GET /api/student/lessons/{lesson_code}
 
     Returns full Study Pack JSON for a published lesson:
-    title, pdf_url, enrich_summary, keywords, teacher_notes, version, questions.
+    title, pdf_url, enrich_summary, key_points, keywords, version, questions.
     Supports lookup by lesson_code or primary key id.
     """
     lesson = (
@@ -104,6 +120,7 @@ async def get_published_lesson(lesson_code: str, db: Session = Depends(get_db)):
         "title": lesson.title,
         "pdf_url": lesson.pdf_url,
         "enrich_summary": lesson.enrich_summary,
+        "key_points": extract_key_points(lesson.enrich_summary),
         "keywords": lesson.get_keywords(),
         "teacher_notes": lesson.teacher_notes,
         "version": lesson.version,

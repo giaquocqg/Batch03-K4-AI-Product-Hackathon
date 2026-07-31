@@ -7,6 +7,44 @@ let currentLesson = null;
 let currentStudentPack = null;
 let activeFeynmanSessionId = null;
 let activeSocraticSessionId = null;
+let currentSearchQuery = null;
+
+const QUICK_PROMPTS_BY_LESSON = {
+  "T01": [
+    "Mô hình Double Diamond là gì?",
+    "Precision vs Recall trong AI?",
+    "UX Fallback là gì?",
+    "Khung Problem Statement có các yếu tố nào?"
+  ],
+  "T02": [
+    "Vòng lặp ReAct hoạt động thế nào?",
+    "Dấu hiệu Agent bị lỗi lặp vô hạn?",
+    "Mô hình Lai (Hybrid Pattern) hoạt động thế nào?",
+    "Bộ nhớ ngắn hạn vs dài hạn của Agent?"
+  ],
+  "T03": [
+    "specificity beats cleverness là gì?",
+    "Lost in the Middle là gì?",
+    "Context Bleed là gì?",
+    "Bản chất của Tool Calling là gì?"
+  ],
+  "T04": [
+    "5 trụ cột của Responsible AI?",
+    "EU AI Act 2024 quy định gì?",
+    "Chỉ số North Star metric cho AI?",
+    "Tại sao lại nợ rủi ro trong PRD?"
+  ]
+};
+
+function getTranscriptFilename(lessonCode) {
+  if (!lessonCode) return '';
+  const match = lessonCode.match(/(\d+)/);
+  if (match) {
+    const num = match[1].padStart(2, '0');
+    return `transcript-${num}-clean.md`;
+  }
+  return 'transcript-01-clean.md';
+}
 
 // --- Tab Switching ---
 function switchTab(role) {
@@ -16,6 +54,7 @@ function switchTab(role) {
   const studentView = document.getElementById('student-view');
 
   if (role === 'teacher') {
+    if (typeof stopQuizTimer === 'function') stopQuizTimer();
     if (teacherTab) teacherTab.classList.add('active');
     if (studentTab) studentTab.classList.remove('active');
     if (teacherView) teacherView.classList.add('active');
@@ -531,10 +570,33 @@ async function loadPublishedLessonsForStudent() {
   }
 }
 
-// 2. Open Student Study Pack
+// 2. Student Sub-Screen Switcher (4-Screen Flow)
+function showStudentScreen(screenId) {
+  document.querySelectorAll('.student-sub-screen').forEach(s => {
+    s.hidden = s.id !== screenId;
+  });
+  if (screenId !== 'sp-screen-quiz') {
+    stopQuizTimer();
+  }
+  // Scroll page to top immediately when switching screens
+  window.scrollTo(0, 0);
+  
+  // Reset sticky timer styling
+  const timer = document.getElementById('quiz-floating-timer');
+  if (timer) {
+    timer.classList.remove('is-sticky');
+  }
+}
+
+// 3. Open Student Study Pack & Move to Screen 2 (Review Room)
 async function openStudentStudyPack(lessonCode) {
   const btnOpen = document.getElementById('btn-open-pack');
   if (btnOpen) btnOpen.disabled = true;
+
+  // Reset active Feynman session when switching lessons
+  activeFeynmanSessionId = null;
+  const feynmanMessages = document.getElementById('feynman-messages-list');
+  if (feynmanMessages) feynmanMessages.innerHTML = '';
 
   try {
     const res = await fetch(`/api/student/lessons/${lessonCode}`);
@@ -547,11 +609,7 @@ async function openStudentStudyPack(lessonCode) {
 
     currentStudentPack = data;
     renderStudentStudyPack(currentStudentPack);
-    const workspace = document.getElementById('student-pack-workspace');
-    if (workspace) {
-      workspace.hidden = false;
-      workspace.scrollIntoView({ behavior: 'smooth' });
-    }
+    showStudentScreen('sp-screen-review');
 
   } catch (err) {
     alert(`Lỗi kết nối: ${err.message}`);
@@ -560,20 +618,15 @@ async function openStudentStudyPack(lessonCode) {
   }
 }
 
-// 3. Render Student Study Pack Components
+// 4. Render Student Study Pack Components (Review Room)
 function renderStudentStudyPack(pack) {
-  const titleEl = document.getElementById('sp-title');
-  const codeSubEl = document.getElementById('sp-code-sub');
-  const versionEl = document.getElementById('sp-version-badge');
+  const titleEl = document.getElementById('sp-review-title');
   const pdfLink = document.getElementById('sp-pdf-link');
   const kwContainer = document.getElementById('sp-keywords-container');
   const summaryEl = document.getElementById('sp-enrich-summary');
-  const notesCard = document.getElementById('sp-teacher-notes-card');
-  const notesEl = document.getElementById('sp-teacher-notes');
+  const keyPointsList = document.getElementById('sp-key-points-list');
 
   if (titleEl) titleEl.textContent = pack.title || pack.lesson_code;
-  if (codeSubEl) codeSubEl.textContent = `Mã bài học: ${pack.lesson_code}`;
-  if (versionEl) versionEl.textContent = `Version ${pack.version || 1}`;
 
   if (pdfLink) {
     if (pack.pdf_url) {
@@ -584,11 +637,28 @@ function renderStudentStudyPack(pack) {
     }
   }
 
+  // Render 02 Ý Trọng Tâm
+  if (keyPointsList) {
+    keyPointsList.innerHTML = '';
+    const keyPoints = pack.key_points || [];
+    if (keyPoints.length === 0) {
+      keyPointsList.innerHTML = '<li style="background: #F8FAFC; border: 2px solid var(--line); border-radius: 18px; padding: 14px 20px;"><p style="font-size: 15px; font-weight: 600;">Xem bài giảng tóm tắt bên dưới để nắm toàn bộ ý chính.</p></li>';
+    } else {
+      keyPoints.forEach((kpText) => {
+        const li = document.createElement('li');
+        li.style.cssText = 'background: #F8FAFC; border: 2px solid var(--line); border-radius: 18px; padding: 14px 20px; font-size: 15.5px; font-weight: 600; line-height: 1.5;';
+        li.textContent = kpText;
+        keyPointsList.appendChild(li);
+      });
+    }
+  }
+
+  // Render 03 Keyword Cần Nhớ
   if (kwContainer) {
     kwContainer.innerHTML = '';
     (pack.keywords || []).forEach(kw => {
       const chip = document.createElement('span');
-      chip.className = 'badge';
+      chip.style.cssText = 'padding: 8px 16px; border: 2px solid var(--ink); background: var(--clay-pink); font-weight: 700; font-size: 14px; border-radius: 20px; box-shadow: 0px 3px 0px var(--ink);';
       chip.textContent = kw;
       kwContainer.appendChild(chip);
     });
@@ -596,45 +666,86 @@ function renderStudentStudyPack(pack) {
 
   if (summaryEl) summaryEl.innerHTML = renderMarkdown(pack.enrich_summary || 'Chưa có nội dung tóm tắt.');
 
-  if (notesCard && notesEl) {
-    if (pack.teacher_notes && pack.teacher_notes.trim()) {
-      notesEl.innerHTML = renderMarkdown(pack.teacher_notes);
-      notesCard.hidden = false;
-    } else {
-      notesCard.hidden = true;
-    }
-  }
+  // Hide Feynman Chat container by default on pack load
+  const feynmanChatContainer = document.getElementById('feynman-chat-container');
+  if (feynmanChatContainer) feynmanChatContainer.hidden = true;
 
   renderStudentQuickQuiz(pack.questions || []);
-  switchStudentSubTab('summary');
 }
 
-// 4. Subtab Switcher
-function switchStudentSubTab(tabName) {
-  const tabs = ['summary', 'quiz', 'feynman'];
-  tabs.forEach(t => {
-    const btn = document.getElementById(`subtab-${t}`);
-    const content = document.getElementById(`student-tab-${t}`);
-    if (btn && content) {
-      if (t === tabName) {
-        btn.classList.add('active');
-        content.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-        content.classList.remove('active');
-      }
-    }
+// 5. Start Virtual Exam (Screen 3)
+function startStudentVirtualExam() {
+  const quizForm = document.getElementById('quiz-form');
+  const quizContainer = document.querySelector('#sp-screen-quiz .card');
+  if (quizForm && quizContainer && quizForm.parentElement !== quizContainer) {
+    quizContainer.appendChild(quizForm);
+  }
+  // Reset radios disabled state
+  if (quizForm) {
+    quizForm.querySelectorAll('input[type="radio"]').forEach(r => {
+      r.disabled = false;
+      r.checked = false;
+    });
+  }
+  // Reset MCQ card statuses
+  const questions = (currentStudentPack && currentStudentPack.questions) ? currentStudentPack.questions : [];
+  questions.forEach((q, idx) => {
+    const qKey = q.id || idx;
+    const card = document.getElementById(`quiz-card-${qKey}`);
+    const resultBox = document.getElementById(`quiz-result-${qKey}`);
+    if (card) card.className = 'mcq-question-card';
+    if (resultBox) resultBox.hidden = true;
   });
+
+  showStudentScreen('sp-screen-quiz');
+  startQuizTimer();
 }
 
-// 5. Render Quick Quiz for Student
+// 6. 10-Min Virtual Exam Room Timer
+let quizTimer = null;
+let quizTimeRemaining = 600; // 10 minutes
+
+function startQuizTimer() {
+  stopQuizTimer();
+  quizTimeRemaining = 600;
+  updateQuizTimerDisplay();
+
+  const floatingTimer = document.getElementById('quiz-floating-timer');
+  if (floatingTimer) floatingTimer.hidden = false;
+
+  quizTimer = setInterval(() => {
+    quizTimeRemaining--;
+    updateQuizTimerDisplay();
+    if (quizTimeRemaining <= 0) {
+      stopQuizTimer();
+      alert('Đã hết 10 phút! Hệ thống đang tự động nộp bài làm của bạn.');
+      handleQuizSubmit(new Event('submit'));
+    }
+  }, 1000);
+}
+
+function stopQuizTimer() {
+  if (quizTimer) {
+    clearInterval(quizTimer);
+    quizTimer = null;
+  }
+  const floatingTimer = document.getElementById('quiz-floating-timer');
+  if (floatingTimer) floatingTimer.hidden = true;
+}
+
+function updateQuizTimerDisplay() {
+  const displayEl = document.getElementById('quiz-timer-display');
+  if (!displayEl) return;
+  const mins = Math.floor(quizTimeRemaining / 60);
+  const secs = quizTimeRemaining % 60;
+  displayEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+// 7. Render Quick Quiz Questions
 function renderStudentQuickQuiz(questions) {
   const container = document.getElementById('quiz-questions-container');
-  const scoreBadge = document.getElementById('quiz-score-badge');
   if (!container) return;
   container.innerHTML = '';
-
-  if (scoreBadge) scoreBadge.hidden = true;
 
   if (questions.length === 0) {
     container.innerHTML = '<p class="text-muted">Chưa có câu hỏi trắc nghiệm nào cho bài học này.</p>';
@@ -643,7 +754,7 @@ function renderStudentQuickQuiz(questions) {
 
   questions.forEach((q, idx) => {
     const card = document.createElement('div');
-    card.className = 'quiz-q-card';
+    card.className = 'mcq-question-card';
     card.id = `quiz-card-${q.id || idx}`;
 
     const options = q.options || {};
@@ -652,7 +763,7 @@ function renderStudentQuickQuiz(questions) {
     ['A', 'B', 'C', 'D'].forEach(optKey => {
       if (options[optKey]) {
         optionsHtml += `
-          <label class="option-label">
+          <label class="option-item">
             <input type="radio" name="q_${q.id || idx}" value="${optKey}">
             <span><strong>${optKey}.</strong> ${escapeHtml(options[optKey])}</span>
           </label>
@@ -661,20 +772,21 @@ function renderStudentQuickQuiz(questions) {
     });
 
     card.innerHTML = `
-      <div class="quiz-q-title">Câu ${idx + 1}: ${escapeHtml(q.question_text)}</div>
-      <div class="options-list">
+      <div style="font-family: 'Nunito', sans-serif; font-size: 17px; font-weight: 800;">Câu ${idx + 1}: ${escapeHtml(q.question_text)}</div>
+      <div class="options-group">
         ${optionsHtml}
       </div>
-      <div id="quiz-result-${q.id || idx}" class="quiz-result-box" hidden></div>
+      <div id="quiz-result-${q.id || idx}" class="quiz-result-box" hidden style="margin-top: 12px; padding: 12px 16px; border: 2px solid var(--ink); border-radius: 16px; font-weight: 600;"></div>
     `;
 
     container.appendChild(card);
   });
 }
 
-// 6. Handle Quiz Submission & Grading
+// 8. Handle Quiz Submission & Transition to Screen 4 (Results)
 function handleQuizSubmit(e) {
-  e.preventDefault();
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+  stopQuizTimer();
   if (!currentStudentPack || !currentStudentPack.questions) return;
 
   const quizForm = document.getElementById('quiz-form');
@@ -690,24 +802,24 @@ function handleQuizSubmit(e) {
     const userChoice = selectedRadio ? selectedRadio.value : null;
     const isCorrect = userChoice === q.correct_option;
 
-    if (card) card.className = `quiz-q-card ${isCorrect ? 'correct' : 'incorrect'}`;
+    if (card) card.className = `mcq-question-card ${isCorrect ? 'correct' : 'incorrect'}`;
 
     if (resultBox) {
       if (isCorrect) {
         correctCount++;
-        resultBox.className = 'quiz-result-box alert alert-success mt-3';
+        resultBox.style.cssText = 'background: #E8FDF0; border-color: var(--success); color: #166534; margin-top: 12px; padding: 12px 16px; border-radius: 16px; font-weight: 600;';
         resultBox.innerHTML = `
           <strong>✅ Chính xác!</strong>
-          <p class="mt-1">${escapeHtml(q.explanation || 'Xuất sắc!')}</p>
+          <p style="margin-top: 4px;">${escapeHtml(q.explanation || 'Xuất sắc!')}</p>
         `;
       } else {
-        resultBox.className = 'quiz-result-box alert alert-danger mt-3';
+        resultBox.style.cssText = 'background: #FEF2F2; border-color: var(--error); color: #991B1B; margin-top: 12px; padding: 12px 16px; border-radius: 16px; font-weight: 600;';
         resultBox.innerHTML = `
           <strong>❌ Chưa chính xác!</strong>
-          <p class="mt-1">Đáp án đúng chính thức: <strong>${q.correct_option}</strong></p>
-          <p class="text-muted mt-1">${escapeHtml(q.explanation || '')}</p>
-          <button type="button" class="btn-socratic mt-2" onclick="openSocraticModal('${currentStudentPack.lesson_code}', '${q.id}', '${userChoice || 'N/A'}', '${escapeHtml(q.question_text)}')">
-            🤖 Hỏi AI Socratic Giải Thích Thêm ➔
+          <p style="margin-top: 4px;">Đáp án đúng chính thức: <strong>${q.correct_option}</strong></p>
+          <p style="color: var(--muted); margin-top: 4px;">${escapeHtml(q.explanation || '')}</p>
+          <button type="button" class="btn btn-sm btn-secondary" style="margin-top: 8px;" onclick="askAiExplainQuestion('${qKey}')">
+            🤖 Hỏi AI Giải Thích Thêm ➔
           </button>
         `;
       }
@@ -715,104 +827,79 @@ function handleQuizSubmit(e) {
     }
   });
 
-  const scoreBadge = document.getElementById('quiz-score-badge');
-  const scoreText = document.getElementById('score-text');
-  if (scoreText) scoreText.textContent = `${correctCount}/${questions.length} (${Math.round((correctCount / questions.length) * 100)}%)`;
-  if (scoreBadge) {
-    scoreBadge.hidden = false;
-    scoreBadge.scrollIntoView({ behavior: 'smooth' });
+  // Move quiz form to results container on Screen 4
+  const gradedContainer = document.getElementById('graded-quiz-container');
+  if (gradedContainer && quizForm) {
+    gradedContainer.appendChild(quizForm);
+    quizForm.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = true);
   }
+
+  const finalScoreText = document.getElementById('final-score-text');
+  const finalScoreFeedback = document.getElementById('final-score-feedback');
+
+  if (finalScoreText) finalScoreText.textContent = `${correctCount}/${questions.length}`;
+  if (finalScoreFeedback) {
+    if (correctCount >= 8) finalScoreFeedback.textContent = "Xuất sắc! Bạn đã nắm rất vững kiến thức bài học này.";
+    else if (correctCount >= 5) finalScoreFeedback.textContent = "Khá tốt! Hãy rà soát lại các câu trả lời sai bên dưới.";
+    else finalScoreFeedback.textContent = "Bạn nên đọc lại bài giảng tóm tắt và nhờ AI Socratic giải thích thêm.";
+  }
+
+  // Initialize RAG Chatbot for results screen
+  initRagChatbotForResults();
+
+  showStudentScreen('sp-screen-results');
 }
 
 
 // =========================================================================
-// ==================== CHATBOT 1: SOCRATIC TUTOR AGENT ====================
+// ==================== CHATBOT 1: AI EXPLAIN ASSISTANT ====================
 // =========================================================================
 
-function openSocraticModal(lessonCode, questionId, userOption, questionText) {
-  const dialog = document.getElementById('socratic-dialog');
-  document.getElementById('soc-lesson-code').value = lessonCode;
-  document.getElementById('soc-question-id').value = questionId || '';
-  document.getElementById('soc-user-option').value = userOption || 'N/A';
+function askAiExplainQuestion(questionId) {
+  if (!currentStudentPack || !currentStudentPack.questions) return;
+  
+  // Find the question by matching ID or fallback to index
+  const qIndex = parseInt(questionId, 10);
+  const q = currentStudentPack.questions.find((item, idx) => 
+    (item.id !== undefined && item.id == questionId) || idx === qIndex
+  );
+  if (!q) return;
 
-  activeSocraticSessionId = `socratic_${Date.now()}`;
-  document.getElementById('soc-session-id').value = activeSocraticSessionId;
+  // Retrieve user's answer choice
+  const selectedRadio = document.querySelector(`input[name="q_${questionId}"]:checked`);
+  const userChoice = selectedRadio ? selectedRadio.value : 'N/A';
 
-  document.getElementById('soc-q-title').textContent = `Giải thích câu hỏi trắc nghiệm`;
-  document.getElementById('soc-q-sub').textContent = `"${questionText}" (Lựa chọn của bạn: ${userOption})`;
+  // Format options
+  const options = q.options || {};
+  const optA = options.A ? `A. ${options.A}` : '';
+  const optB = options.B ? `B. ${options.B}` : '';
+  const optC = options.C ? `C. ${options.C}` : '';
+  const optD = options.D ? `D. ${options.D}` : '';
+  const opts = [optA, optB, optC, optD].filter(Boolean).join(', ');
 
-  const list = document.getElementById('socratic-messages-list');
-  if (list) {
-    list.innerHTML = `
-      <div class="msg-bubble msg-ai">
-        <strong>Trợ giảng Socratic:</strong><br>
-        Chào bạn! Tôi đang xem lại câu hỏi này. Bạn có muốn hỏi thêm điều gì cụ thể hoặc muốn tôi giải thích bản chất khái niệm chưa đúng không?
-      </div>
-    `;
+  // Construct full prompt for LLM (hiển thị cho user và gửi cho LLM)
+  const promptText = `Hãy giải thích chi tiết câu hỏi này giúp tôi: "${q.question_text}". Các phương án lựa chọn: ${opts}. Tôi đã chọn phương án ${userChoice}, nhưng đáp án đúng là ${q.correct_option}. Tại sao phương án của tôi chưa đúng và tại sao ${q.correct_option} mới là đáp án chính xác?`;
+
+  const chatbotInput = document.getElementById('chatbot-input');
+  const chatbotForm = document.getElementById('chatbot-form');
+  const chatbotPanel = document.getElementById('chatbot-panel');
+
+  if (chatbotInput && chatbotForm) {
+    chatbotInput.value = promptText;
+
+    // Fix Bug #2: Pin search_query trực tiếp lên form element thay vì dùng biến global
+    // để tránh race condition. handleChatbotSubmit sẽ đọc và xóa ngay lập tức.
+    chatbotForm.dataset.pendingSearchQuery = q.question_text;
+
+    // Auto-scroll the chatbot panel into view for better UX
+    if (chatbotPanel) {
+      chatbotPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Dispatch submit event to trigger chatbot submission
+    const event = new Event('submit', { cancelable: true });
+    chatbotForm.dispatchEvent(event);
   }
-
-  if (dialog) dialog.showModal();
-}
-
-function closeSocraticModal() {
-  const dialog = document.getElementById('socratic-dialog');
-  if (dialog) dialog.close();
-}
-
-function handleSocraticChatSubmit(e) {
-  e.preventDefault();
-
-  const lessonCode = document.getElementById('soc-lesson-code').value;
-  const questionId = document.getElementById('soc-question-id').value;
-  const userOption = document.getElementById('soc-user-option').value;
-  const sessionId = document.getElementById('soc-session-id').value;
-  const userInputEl = document.getElementById('soc-user-input');
-  const userInput = userInputEl ? userInputEl.value.trim() : '';
-
-  if (!userInput) return;
-
-  const list = document.getElementById('socratic-messages-list');
-  if (!list) return;
-
-  const userBubble = document.createElement('div');
-  userBubble.className = 'msg-bubble msg-user';
-  userBubble.textContent = userInput;
-  list.appendChild(userBubble);
-
-  if (userInputEl) userInputEl.value = '';
-  list.scrollTop = list.scrollHeight;
-
-  const loadingBubble = document.createElement('div');
-  loadingBubble.className = 'msg-bubble msg-ai';
-  loadingBubble.innerHTML = '<em>Trợ giảng Socratic đang suy nghĩ và tra cứu Vector DB...</em>';
-  list.appendChild(loadingBubble);
-  list.scrollTop = list.scrollHeight;
-
-  fetch('/api/student/chat/explain', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      lesson_code: lessonCode,
-      question_id: questionId,
-      user_selected_option: userOption,
-      user_message: userInput,
-      session_id: sessionId,
-    }),
-  })
-    .then(res => res.json().then(data => ({ ok: res.ok, data })))
-    .then(({ ok, data }) => {
-      if (ok && data.reply) {
-        loadingBubble.innerHTML = `<strong>Trợ giảng Socratic:</strong><div class="markdown-body mt-1">${renderMarkdown(data.reply)}</div>`;
-      } else {
-        loadingBubble.innerHTML = `<strong>Lỗi:</strong> ${data.detail || 'Không nhận được phản hồi.'}`;
-      }
-    })
-    .catch(err => {
-      loadingBubble.innerHTML = `<strong>Lỗi kết nối:</strong> ${err.message}`;
-    })
-    .finally(() => {
-      list.scrollTop = list.scrollHeight;
-    });
 }
 
 
@@ -820,16 +907,29 @@ function handleSocraticChatSubmit(e) {
 // ================= CHATBOT 2: FEYNMAN REVERSE-ROLE AGENT =================
 // =========================================================================
 
+function enterFeynmanMode() {
+  if (!currentStudentPack) {
+    alert("Vui lòng chọn bài học trước!");
+    return;
+  }
+  showStudentScreen('sp-screen-feynman');
+  if (!activeFeynmanSessionId) {
+    startFeynmanChat();
+  }
+}
+
 async function startFeynmanChat() {
   if (!currentStudentPack) {
     alert("Vui lòng chọn bài học trước!");
     return;
   }
 
+  showStudentScreen('sp-screen-feynman');
+
   const list = document.getElementById('feynman-messages-list');
   const container = document.getElementById('feynman-chat-container');
 
-  if (list) list.innerHTML = '<div class="msg-bubble msg-ai"><em>Đang khởi tạo Học sinh AI tò mò...</em></div>';
+  if (list) list.innerHTML = '<div class="chat-msg agent"><em>Đang khởi tạo Học sinh AI tò mò...</em></div>';
   if (container) container.hidden = false;
 
   try {
@@ -846,18 +946,18 @@ async function startFeynmanChat() {
       activeFeynmanSessionId = data.session_id;
       if (list) {
         list.innerHTML = `
-          <div class="msg-bubble msg-ai">
+          <div class="chat-msg agent">
             <strong>Học sinh AI (Tò mò):</strong><br>
             ${escapeHtml(data.initial_message).replace(/\n/g, '<br>')}
           </div>
         `;
       }
     } else {
-      if (list) list.innerHTML = `<div class="msg-bubble msg-ai text-danger">Lỗi: ${data.detail || 'Không thể khởi tạo.'}</div>`;
+      if (list) list.innerHTML = `<div class="chat-msg agent text-danger">Lỗi: ${data.detail || 'Không thể khởi tạo.'}</div>`;
     }
 
   } catch (err) {
-    if (list) list.innerHTML = `<div class="msg-bubble msg-ai text-danger">Lỗi kết nối: ${err.message}</div>`;
+    if (list) list.innerHTML = `<div class="chat-msg agent text-danger">Lỗi kết nối: ${err.message}</div>`;
   }
 }
 
@@ -872,7 +972,7 @@ function handleFeynmanChatSubmit(e) {
   if (!studentAnswer || !activeFeynmanSessionId || !currentStudentPack) return;
 
   const userBubble = document.createElement('div');
-  userBubble.className = 'msg-bubble msg-user';
+  userBubble.className = 'chat-msg user';
   userBubble.innerHTML = `<strong>Thầy giáo (Bạn):</strong><br>${escapeHtml(studentAnswer).replace(/\n/g, '<br>')}`;
   if (list) list.appendChild(userBubble);
 
@@ -880,7 +980,7 @@ function handleFeynmanChatSubmit(e) {
   if (list) list.scrollTop = list.scrollHeight;
 
   const aiBubble = document.createElement('div');
-  aiBubble.className = 'msg-bubble msg-ai';
+  aiBubble.className = 'chat-msg agent';
   aiBubble.innerHTML = '<em>Học sinh AI đang lắng nghe và suy ngẫm...</em>';
   if (list) list.appendChild(aiBubble);
   if (list) list.scrollTop = list.scrollHeight;
@@ -911,6 +1011,202 @@ function handleFeynmanChatSubmit(e) {
       if (btnSend) btnSend.disabled = false;
       if (list) list.scrollTop = list.scrollHeight;
     });
+}
+
+function initRagChatbotForResults() {
+  const chatbotMessages = document.getElementById('chatbot-messages');
+  const quickChipsContainer = document.getElementById('quick-chips');
+  const chatbotForm = document.getElementById('chatbot-form');
+  const chatbotInput = document.getElementById('chatbot-input');
+
+  if (chatbotMessages) {
+    chatbotMessages.innerHTML = `
+      <div class="chat-message system">
+        <p>Chào bạn! Tôi là trợ lý RAG. Hãy hỏi tôi về bài giảng này. Tất cả câu trả lời của tôi đều có trích dẫn mã đoạn <code>[Txx-NNN]</code> để bạn kiểm chứng.</p>
+      </div>
+    `;
+  }
+
+  if (quickChipsContainer && currentStudentPack) {
+    quickChipsContainer.innerHTML = '';
+    const transcriptFile = getTranscriptFilename(currentStudentPack.lesson_code);
+    let transcriptId = 'T01';
+    const match = transcriptFile.match(/transcript-(\d+)-clean/);
+    if (match) {
+      transcriptId = `T${match[1]}`;
+    }
+
+    const chips = QUICK_PROMPTS_BY_LESSON[transcriptId] || ["Tóm tắt bài học này", "Hãy cho tôi biết trọng tâm bài giảng"];
+    chips.forEach((promptText) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'quick-chip';
+      chip.textContent = promptText;
+      chip.addEventListener('click', () => {
+        if (chatbotInput) {
+          chatbotInput.value = promptText;
+        }
+        if (chatbotForm) {
+          const event = new Event('submit', { cancelable: true });
+          chatbotForm.dispatchEvent(event);
+        }
+      });
+      quickChipsContainer.append(chip);
+    });
+  }
+}
+
+async function handleChatbotSubmit(event) {
+  event.preventDefault();
+  if (!currentStudentPack) return;
+
+  // Fix Bug #2: Ưu tiên đọc pendingSearchQuery từ form element (set bởi askAiExplainQuestion)
+  // Fallback về biến global currentSearchQuery (set bởi các flow khác)
+  const chatbotFormEl = document.getElementById('chatbot-form');
+  const searchQueryToSend =
+    (chatbotFormEl && chatbotFormEl.dataset.pendingSearchQuery)
+      ? chatbotFormEl.dataset.pendingSearchQuery
+      : currentSearchQuery;
+  if (chatbotFormEl) delete chatbotFormEl.dataset.pendingSearchQuery; // xóa ngay sau khi đọc
+  currentSearchQuery = null; // reset biến global
+
+  const chatbotInput = document.getElementById('chatbot-input');
+  const chatbotMessages = document.getElementById('chatbot-messages');
+  const question = chatbotInput ? chatbotInput.value.trim() : '';
+  if (!question) return;
+
+  // Append user message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'chat-message user';
+  userMsg.innerHTML = `<p>${escapeHtml(question)}</p>`;
+  if (chatbotMessages) {
+    chatbotMessages.append(userMsg);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  if (chatbotInput) {
+    chatbotInput.value = '';
+    chatbotInput.disabled = true;
+  }
+
+  // Append typing indicator
+  const typingMsg = document.createElement('div');
+  typingMsg.className = 'chat-message assistant typing';
+  typingMsg.innerHTML = `<p>Trợ lý đang truy xuất bài giảng...</p>`;
+  if (chatbotMessages) {
+    chatbotMessages.append(typingMsg);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  const transcriptFile = getTranscriptFilename(currentStudentPack.lesson_code);
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        transcript: transcriptFile,
+        question: question,
+        search_query: searchQueryToSend
+      })
+    });
+
+    const payload = await response.json();
+    typingMsg.remove();
+
+    if (response.status === 429) {
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'chat-message system';
+      errorMsg.style.borderColor = 'var(--error)';
+      errorMsg.innerHTML = `<p>⚠️ ${payload.detail || 'Hỏi quá nhanh. Hãy thử lại sau.'}</p>`;
+      if (chatbotMessages) chatbotMessages.append(errorMsg);
+    } else if (!response.ok) {
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'chat-message system';
+      errorMsg.style.borderColor = 'var(--error)';
+      errorMsg.innerHTML = `<p>⚠️ ${payload.detail || 'Lỗi xử lý câu hỏi.'}</p>`;
+      if (chatbotMessages) chatbotMessages.append(errorMsg);
+    } else {
+      const assistantMsg = document.createElement('div');
+      assistantMsg.className = 'chat-message assistant';
+      assistantMsg.append(formatAssistantResponseText(payload.answer));
+      if (chatbotMessages) chatbotMessages.append(assistantMsg);
+    }
+  } catch (error) {
+    typingMsg.remove();
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'chat-message system';
+    errorMsg.innerHTML = `<p>⚠️ Lỗi kết nối mạng: ${error.message}</p>`;
+    if (chatbotMessages) chatbotMessages.append(errorMsg);
+  } finally {
+    if (chatbotInput) {
+      chatbotInput.disabled = false;
+      chatbotInput.focus();
+    }
+    if (chatbotMessages) chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+}
+
+function formatAssistantResponseText(text) {
+  const container = document.createElement('div');
+  const regex = /\[(T\d{2}-\d{3})\]/g;
+  
+  let lastIndex = 0;
+  let match;
+  
+  const p = document.createElement('p');
+  
+  while ((match = regex.exec(text)) !== null) {
+    const code = match[1];
+    const textBefore = text.slice(lastIndex, match.index);
+    if (textBefore) {
+      p.append(document.createTextNode(textBefore));
+    }
+    p.append(citationButton(code));
+    lastIndex = regex.lastIndex;
+  }
+  
+  const textAfter = text.slice(lastIndex);
+  if (textAfter) {
+    p.append(document.createTextNode(textAfter));
+  }
+  
+  container.append(p);
+  return container;
+}
+
+function citationButton(code) {
+  const button = document.createElement('button');
+  button.className = 'citation-button';
+  button.type = 'button';
+  button.textContent = `[${code}]`;
+  button.addEventListener('click', () => openCitation(code));
+  return button;
+}
+
+async function openCitation(code) {
+  try {
+    if (!currentStudentPack) return;
+    const transcriptFile = getTranscriptFilename(currentStudentPack.lesson_code);
+    const params = new URLSearchParams({ transcript: transcriptFile, code });
+    const response = await fetch(`/api/citation?${params}`);
+    const payload = await response.json();
+    if (!response.ok) {
+      alert(payload.error || 'Không tìm thấy đoạn trích nguồn.');
+      return;
+    }
+    const citationCode = document.querySelector('#citation-code');
+    const citationText = document.querySelector('#citation-text');
+    const citationWarning = document.querySelector('#citation-warning');
+    const citationDialog = document.querySelector('#citation-dialog');
+    
+    if (citationCode) citationCode.textContent = `[${payload.code}]`;
+    if (citationText) citationText.textContent = payload.text;
+    if (citationWarning) citationWarning.hidden = !payload.has_unclear;
+    if (citationDialog) citationDialog.showModal();
+  } catch (error) {
+    alert('Không mở được citation: ' + error.message);
+  }
 }
 
 
@@ -960,16 +1256,72 @@ document.addEventListener('DOMContentLoaded', () => {
     quizForm.addEventListener('submit', handleQuizSubmit);
   }
 
-  // Socratic Chat Form
-  const socraticChatForm = document.getElementById('socratic-chat-form');
-  if (socraticChatForm) {
-    socraticChatForm.addEventListener('submit', handleSocraticChatSubmit);
+  // Start Student Quiz Button listener
+  const startStudentQuizBtn = document.getElementById('btn-start-student-quiz');
+  if (startStudentQuizBtn) {
+    startStudentQuizBtn.addEventListener('click', startStudentVirtualExam);
   }
+
+  // Start Feynman Button listener
+  const startFeynmanBtn = document.getElementById('btn-start-feynman');
+  if (startFeynmanBtn) {
+    startFeynmanBtn.addEventListener('click', startFeynmanChat);
+  }
+
+
 
   // Feynman Chat Form
   const feynmanChatForm = document.getElementById('feynman-chat-form');
   if (feynmanChatForm) {
     feynmanChatForm.addEventListener('submit', handleFeynmanChatSubmit);
+  }
+
+  // RAG Chatbot Form
+  const chatbotForm = document.getElementById('chatbot-form');
+  if (chatbotForm) {
+    chatbotForm.addEventListener('submit', handleChatbotSubmit);
+  }
+
+  // Scroll listener to make timer sticky when static header is out of view
+  window.addEventListener('scroll', () => {
+    const timer = document.getElementById('quiz-floating-timer');
+    if (!timer || timer.hidden) return;
+
+    const header = document.querySelector('.quiz-header-static');
+    if (header) {
+      const rect = header.getBoundingClientRect();
+      if (rect.bottom < 0) {
+        timer.classList.add('is-sticky');
+      } else {
+        timer.classList.remove('is-sticky');
+      }
+    }
+  });
+
+  // Close citation dialog
+  const closeDialog = document.getElementById('close-dialog');
+  if (closeDialog) {
+    closeDialog.addEventListener('click', () => {
+      const dialog = document.getElementById('citation-dialog');
+      if (dialog) dialog.close();
+    });
+  }
+
+  // Close citation dialog when clicking backdrop
+  const citationDialog = document.getElementById('citation-dialog');
+  if (citationDialog) {
+    citationDialog.addEventListener('click', (event) => {
+      const rect = citationDialog.getBoundingClientRect();
+      const isInDialog = (
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width
+      );
+      if (!isInDialog) {
+        citationDialog.close();
+      }
+    });
   }
 
   // Initial Load of Lessons

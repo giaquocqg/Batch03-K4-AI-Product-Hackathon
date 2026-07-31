@@ -11,6 +11,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, status
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -28,11 +29,15 @@ from study_pack_generator import (
     MissingAPIKeyError,
     UnsupportedObjectiveError,
     generate_study_pack,
+    _load_env_file,
 )
 from transcript_parser import parse_transcript
 
 # Initialize DB tables
 init_db()
+
+# Load environment variables from .env
+_load_env_file()
 
 app = FastAPI(
     title="10 mins Study Pack API",
@@ -123,6 +128,65 @@ async def generate_student_study_pack(request: Request):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Lỗi tạo Study Pack: {str(err)}",
+        )
+
+
+from typing import Optional
+
+class ChatRequest(BaseModel):
+    transcript: str
+    question: str
+    search_query: Optional[str] = None
+
+
+@app.post("/api/chat")
+async def chat_endpoint(payload: ChatRequest, request: Request):
+    """RAG Chatbot endpoint for answering questions about the lesson."""
+    client_host = request.client.host if request.client else "127.0.0.1"
+    transcript_name = payload.transcript
+
+    try:
+        import re
+        match = re.search(r"transcript-(\d+)-clean", transcript_name)
+        if match:
+            transcript_id = f"T{match.group(1)}"
+        else:
+            transcript_id = transcript_name
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Định dạng transcript không đúng.",
+        )
+
+    # 1. Rate Limiting Check
+    from guardrails import check_rate_limit, RateLimitExceeded, sanitize_chat_query
+    try:
+        check_rate_limit(client_host)
+    except RateLimitExceeded as e:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=str(e),
+        )
+
+    # 2. Guardrails Check
+    try:
+        sanitized_question = sanitize_chat_query(payload.question)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    # 3. Query RAG
+    from rag_engine import query_rag
+    try:
+        s_query = payload.search_query.strip() if (payload.search_query and payload.search_query.strip()) else None
+        res = query_rag(sanitized_question, transcript_id, search_query=s_query)
+        return res
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi RAG Query: {str(e)}",
         )
 
 

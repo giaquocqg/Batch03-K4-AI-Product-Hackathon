@@ -135,8 +135,14 @@ def _load_env_file() -> None:
                     if line and not line.startswith('#') and '=' in line:
                         k, v = line.split('=', 1)
                         k, v = k.strip(), v.strip().strip("'\"")
-                        if k and k not in os.environ:
-                            os.environ[k] = v
+                        if k:
+                            v_clean = v.strip()
+                            # Overwrite if not set, is empty, contains placeholder, or if the new value is a valid non-placeholder key
+                            if (k not in os.environ or 
+                                not os.environ[k].strip() or 
+                                "your_" in os.environ[k] or 
+                                (v_clean and not v_clean.startswith("your_"))):
+                                os.environ[k] = v_clean
             except Exception:
                 pass
 
@@ -153,6 +159,11 @@ def _get_api_provider() -> Tuple[str, str]:
     _load_env_file()
     google_key = os.environ.get('GOOGLE_API_KEY', '').strip()
     openai_key = os.environ.get('OPENAI_API_KEY', '').strip()
+
+    if google_key and google_key.startswith('your_'):
+        google_key = ''
+    if openai_key and openai_key.startswith('your_'):
+        openai_key = ''
 
     if google_key:
         return ('gemini', google_key)
