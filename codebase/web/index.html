@@ -4,53 +4,252 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Tạo Study Pack 10 phút có citation từ transcript bài giảng.">
+  <meta name="theme-color" content="#071b4d">
   <title>Study Pack 10 phút</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230c61b7'/%3E%3Cpath d='M18 22c3-6 10-9 17-7 7 2 12 8 12 15s-5 14-12 16c-7 2-15-1-18-8' fill='none' stroke='%2371e4ef' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='22' r='5' fill='white'/%3E%3Ccircle cx='17' cy='38' r='5' fill='white'/%3E%3Ccircle cx='46' cy='31' r='5' fill='white'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header class="masthead">
-    <a class="wordmark" href="/" aria-label="Study Pack home">SP<span>10</span></a>
-    <a class="masthead-cta" href="#setup">Bắt đầu ôn <span aria-hidden="true">↓</span></a>
+  <a class="skip-link" href="#setup">Bỏ qua đến phần tạo Study Pack</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Study Pack 10 phút — trang chủ">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </span>
+        <span class="brand-name">StudyPack<span>10</span></span>
+      </a>
+
+      <nav class="main-nav" aria-label="Điều hướng chính">
+        <a href="#benefits">Tính năng</a>
+        <a href="#process">Cách hoạt động</a>
+        <a href="#setup">Tạo Study Pack</a>
+      </nav>
+
+      <a class="header-cta" href="#setup">
+        Bắt đầu ôn
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
   </header>
 
   <main>
     <section class="hero" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">Một buổi học. Mười phút. Năm câu tự nhớ.</p>
-        <h1 id="page-title">Đừng đọc lại.<br><em>Hãy tự nhớ lại.</em></h1>
+      <div class="hero-pattern" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow eyebrow-light">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            Học chủ động từ chính bài giảng của bạn
+          </p>
+          <h1 id="page-title">Ôn đúng trọng tâm.<br><span>Nhớ lâu hơn trong 10 phút.</span></h1>
+          <p class="hero-lead">Biến transcript thành ý chính, keyword và câu hỏi active recall. Mỗi nội dung đều dẫn về đúng đoạn nguồn để bạn tự kiểm chứng.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#setup">
+              Tạo Study Pack
+              <span aria-hidden="true">↗</span>
+            </a>
+            <a class="button button-ghost" href="#process">Xem cách hoạt động</a>
+          </div>
+          <ul class="trust-list" aria-label="Nguyên tắc của Study Pack">
+            <li><span aria-hidden="true">✓</span> Không bịa ngoài transcript</li>
+            <li><span aria-hidden="true">✓</span> Citation mở được</li>
+            <li><span aria-hidden="true">✓</span> Tập trung active recall</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-label="Quy trình tạo Study Pack có kiểm chứng">
+          <div class="orbit orbit-one" aria-hidden="true"></div>
+          <div class="orbit orbit-two" aria-hidden="true"></div>
+
+          <div class="visual-card">
+            <div class="visual-card-top">
+              <div>
+                <p class="mini-label">Quy trình học có căn cứ</p>
+                <h2>Transcript → Recall</h2>
+              </div>
+              <span class="verified-badge">
+                <span aria-hidden="true">✓</span>
+                Verified
+              </span>
+            </div>
+
+            <div class="process-preview">
+              <div class="preview-step is-active">
+                <span class="preview-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 12h8M8 16h6"/></svg>
+                </span>
+                <div><small>01</small><strong>Chọn transcript</strong></div>
+                <span class="step-check" aria-hidden="true">✓</span>
+              </div>
+              <div class="preview-line" aria-hidden="true"></div>
+              <div class="preview-step">
+                <span class="preview-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3a5 5 0 0 0-3 9v3h6v-3a5 5 0 0 0-3-9zM9 19h6M10 15v2h4v-2"/></svg>
+                </span>
+                <div><small>02</small><strong>AI chọn trọng tâm</strong></div>
+                <span class="step-pulse" aria-hidden="true"></span>
+              </div>
+              <div class="preview-line" aria-hidden="true"></div>
+              <div class="preview-step">
+                <span class="preview-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="m8 11 2 2 5-5M8 16h8"/></svg>
+                </span>
+                <div><small>03</small><strong>Tự nhớ & kiểm nguồn</strong></div>
+                <span class="step-number" aria-hidden="true">3</span>
+              </div>
+            </div>
+
+            <div class="source-preview">
+              <span class="source-code">[Txx-NNN]</span>
+              <p>Nhấn citation để mở đúng đoạn transcript gốc.</p>
+              <span class="source-arrow" aria-hidden="true">→</span>
+            </div>
+          </div>
+
+          <div class="floating-chip chip-top" aria-hidden="true">
+            <span>5</span>
+            câu hỏi tự nhớ
+          </div>
+          <div class="floating-chip chip-bottom" aria-hidden="true">
+            <span class="shield-icon">✓</span>
+            Kiểm tra citation
+          </div>
+        </div>
       </div>
-      <p class="hero-note">AI chỉ chọn và nén nội dung từ transcript đã chọn. Mỗi ý và đáp án phải mở được đoạn nguồn; thiếu căn cứ thì không hiện.</p>
     </section>
 
-    <section id="setup" class="workbench" aria-labelledby="setup-title">
-      <div class="step-index">01</div>
-      <div class="setup-copy">
-        <p class="eyebrow">Thiết lập lượt ôn</p>
-        <h2 id="setup-title">Chọn đúng buổi học</h2>
-        <p>Hiện chỉ hỗ trợ lát cắt ôn quiz trong 10 phút.</p>
+    <section id="benefits" class="benefits" aria-labelledby="benefits-title">
+      <div class="section-intro">
+        <p class="eyebrow">Study Pack có kiểm chứng</p>
+        <h2 id="benefits-title">Ít đọc lại. Nhiều lần tự nhớ hơn.</h2>
+        <p>Một lát cắt học tập gọn cho lúc bạn cần ôn nhanh mà vẫn muốn biết thông tin đến từ đâu.</p>
       </div>
-      <form id="generate-form">
-        <label for="transcript-select">Transcript bài giảng</label>
-        <select id="transcript-select" name="transcript" required>
-          <option value="">Đang tải danh sách...</option>
-        </select>
-        <label for="objective">Mục tiêu</label>
-        <input id="objective" name="objective" value="Ôn quiz trong 10 phút" readonly>
-        <button class="primary-button" type="submit">
-          <span>Tạo Study Pack</span><span aria-hidden="true">↗</span>
-        </button>
-      </form>
+
+      <div class="benefit-grid">
+        <article class="benefit-card">
+          <span class="benefit-number">01</span>
+          <span class="benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5M8 17h7"/></svg>
+          </span>
+          <h3>Trọng tâm từ transcript</h3>
+          <p>AI chỉ chọn và nén nội dung có trong buổi học bạn đã chọn.</p>
+        </article>
+
+        <article class="benefit-card">
+          <span class="benefit-number">02</span>
+          <span class="benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 7H5v12h12v-3"/><path d="M9 4h10v10H9z"/><path d="m12 9 2 2 3-4"/></svg>
+          </span>
+          <h3>Nguồn mở trong một chạm</h3>
+          <p>Mỗi ý chính và đáp án đều gắn citation về đúng đoạn nguồn.</p>
+        </article>
+
+        <article class="benefit-card">
+          <span class="benefit-number">03</span>
+          <span class="benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 4a7 7 0 1 0 7 7"/><path d="M12 1v6h6M9 11h6M12 8v6"/></svg>
+          </span>
+          <h3>Ôn vừa đủ trong 10 phút</h3>
+          <p>Ý chính, keyword và năm câu hỏi active recall trong một luồng.</p>
+        </article>
+      </div>
     </section>
 
-    <section id="status-panel" class="status-panel" hidden aria-live="polite"></section>
+    <section id="process" class="process-band" aria-labelledby="process-title">
+      <div class="process-inner">
+        <div class="process-heading">
+          <p class="eyebrow eyebrow-light">// Cách hoạt động</p>
+          <h2 id="process-title">Từ bài giảng đến một lượt ôn chủ động</h2>
+        </div>
+        <ol class="process-list">
+          <li>
+            <span>01</span>
+            <div><strong>Chọn nguồn học</strong><p>Chọn một paper hoặc một ngày học trong danh sách transcript.</p></div>
+          </li>
+          <li>
+            <span>02</span>
+            <div><strong>Tạo Study Pack</strong><p>Model đọc nguồn, chọn trọng tâm và kiểm tra citation trước khi hiển thị.</p></div>
+          </li>
+          <li>
+            <span>03</span>
+            <div><strong>Tự nhớ rồi kiểm chứng</strong><p>Trả lời trước khi mở đáp án và nhấn citation khi cần xem lại nguồn.</p></div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="setup" class="workspace-section" aria-labelledby="setup-title">
+      <div class="workspace-heading">
+        <div>
+          <p class="eyebrow">Bắt đầu lượt ôn</p>
+          <h2 id="setup-title">Bạn muốn ôn nội dung nào?</h2>
+        </div>
+        <p>Chọn đúng nguồn học. Study Pack hiện tập trung vào một mục tiêu duy nhất: ôn quiz trong 10 phút.</p>
+      </div>
+
+      <div class="workbench">
+        <div class="workbench-guide">
+          <span class="guide-kicker">Study session</span>
+          <h3>Một nguồn.<br>Một mục tiêu.<br>Mười phút.</h3>
+          <p>Hệ thống sẽ không trộn nội dung giữa các transcript và không hiện mục thiếu căn cứ.</p>
+          <div class="guide-note">
+            <span aria-hidden="true">i</span>
+            <p>Citation có dạng <strong>[Txx-NNN]</strong>. Bạn có thể mở từng citation sau khi Study Pack được tạo.</p>
+          </div>
+        </div>
+
+        <form id="generate-form" class="generate-form">
+          <div class="form-heading">
+            <span class="form-step">01</span>
+            <div>
+              <p class="eyebrow">Thiết lập lượt ôn</p>
+              <h3>Chọn transcript bài giảng</h3>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="transcript-select">Nguồn học</label>
+            <div class="select-wrap">
+              <select id="transcript-select" name="transcript" required>
+                <option value="">Đang tải danh sách...</option>
+              </select>
+              <span aria-hidden="true">⌄</span>
+            </div>
+            <div id="transcript-meta" class="transcript-meta" aria-live="polite">Danh sách nguồn đang được tải từ server.</div>
+          </div>
+
+          <div class="field-group">
+            <label for="objective">Mục tiêu học</label>
+            <div class="input-wrap">
+              <span aria-hidden="true">◎</span>
+              <input id="objective" name="objective" value="Ôn quiz trong 10 phút" readonly>
+            </div>
+          </div>
+
+          <button class="button submit-button" type="submit">
+            <span class="button-label">Tạo Study Pack</span>
+            <span class="button-icon" aria-hidden="true">→</span>
+          </button>
+          <p class="form-footnote"><span aria-hidden="true">✦</span> Kết quả được tạo bằng model thật và có thể mất vài giây.</p>
+        </form>
+      </div>
+
+      <section id="status-panel" class="status-panel" hidden aria-live="polite"></section>
+    </section>
 
     <section id="result" class="result" hidden aria-labelledby="result-title">
       <div class="result-heading">
         <div>
           <p class="eyebrow">Study Pack đã kiểm nguồn</p>
           <h2 id="result-title">10 phút bắt đầu từ đây</h2>
+          <p id="result-context" class="result-context"></p>
         </div>
-        <button id="regenerate" class="text-button" type="button">Tạo lại ↻</button>
+        <button id="regenerate" class="text-button" type="button">
+          Tạo lại
+          <span aria-hidden="true">↻</span>
+        </button>
       </div>
 
       <div id="warnings" class="warnings" hidden></div>
@@ -72,9 +271,23 @@
     </section>
   </main>
 
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <a class="brand brand-footer" href="/" aria-label="Study Pack 10 phút — trang chủ">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </span>
+        <span class="brand-name">StudyPack<span>10</span></span>
+      </a>
+      <p>Học từ transcript. Tự nhớ. Mở nguồn để kiểm chứng.</p>
+      <a href="#page-title">Lên đầu trang <span aria-hidden="true">↑</span></a>
+    </div>
+  </footer>
+
   <dialog id="citation-dialog">
+    <div class="dialog-accent" aria-hidden="true"></div>
     <button id="close-dialog" class="dialog-close" type="button" aria-label="Đóng">×</button>
-    <p class="eyebrow">Đoạn nguồn</p>
+    <p class="eyebrow">Đoạn nguồn đã kiểm chứng</p>
     <h2 id="citation-code">Citation</h2>
     <p id="citation-text"></p>
     <p id="citation-warning" class="citation-warning" hidden>Nguồn có đoạn [không nghe rõ], cần kiểm tra bản gốc.</p>
@@ -84,13 +297,13 @@
     <article class="question-card">
       <div class="question-number"></div>
       <h4></h4>
-      <button class="reveal-button" type="button">Hiện đáp án</button>
+      <button class="reveal-button" type="button" aria-expanded="false">Hiện đáp án</button>
       <div class="answer" hidden>
         <p></p>
         <div class="citation-list"></div>
         <div class="feedback-row">
           <span>Đáp án chưa ổn?</span>
-          <button class="feedback-button" type="button">Chưa đúng</button>
+          <button class="feedback-button" type="button" aria-expanded="false">Gửi phản hồi</button>
         </div>
         <div class="feedback-reasons" hidden>
           <button type="button">Sai nguồn</button>

@@ -29,7 +29,7 @@ from schema import (
 
 
 MODEL_BY_PROVIDER = {
-    'gemini': 'gemini-2.0-flash',
+    'gemini': 'gemini-3.5-flash-lite',
     'openai': 'gpt-4o-mini',
 }
 GENERATION_TEMPERATURE = 0.3
@@ -216,6 +216,29 @@ def _call_gemini(
     import google.generativeai as genai
 
     genai.configure(api_key=api_key)
+    response_schema = json.loads(json.dumps(STUDY_PACK_JSON_SCHEMA))
+    unsupported_keywords = {
+        '$schema',
+        'additionalProperties',
+        'minLength',
+        'pattern',
+        'uniqueItems',
+    }
+
+    def remove_unsupported_keywords(value: object) -> None:
+        if isinstance(value, dict):
+            for source, target in (('minItems', 'min_items'), ('maxItems', 'max_items')):
+                if source in value:
+                    value[target] = value.pop(source)
+            for keyword in unsupported_keywords:
+                value.pop(keyword, None)
+            for child in value.values():
+                remove_unsupported_keywords(child)
+        elif isinstance(value, list):
+            for child in value:
+                remove_unsupported_keywords(child)
+
+    remove_unsupported_keywords(response_schema)
     model = genai.GenerativeModel(
         MODEL_BY_PROVIDER['gemini'],
         system_instruction=system_prompt,
@@ -224,6 +247,7 @@ def _call_gemini(
         user_prompt,
         generation_config=genai.GenerationConfig(
             response_mime_type="application/json",
+            response_schema=response_schema,
             temperature=GENERATION_TEMPERATURE,
         ),
     )
@@ -389,7 +413,7 @@ def generate_study_pack(
     system_prompt, user_prompt = _build_prompts(
         transcript,
         objective,
-        include_schema=provider != 'openai',
+        include_schema=False,
     )
     trace_id = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')
 

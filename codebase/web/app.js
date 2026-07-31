@@ -9,7 +9,37 @@ const questions = document.querySelector('#questions');
 const regenerate = document.querySelector('#regenerate');
 const dialog = document.querySelector('#citation-dialog');
 const questionTemplate = document.querySelector('#question-template');
+const transcriptMeta = document.querySelector('#transcript-meta');
+const resultContext = document.querySelector('#result-context');
+const submitButton = form.querySelector('button[type="submit"]');
+const submitLabel = submitButton.querySelector('.button-label');
 let activeTranscript = '';
+let transcriptCatalog = [];
+
+function displayTitle(title) {
+  return title
+    .replace('Study Pack corpus - ', '')
+    .replace('Transcript bài giảng (bản sạch) — ', '');
+}
+
+function updateTranscriptMeta() {
+  const selected = transcriptCatalog.find((item) => item.file_name === transcriptSelect.value);
+  if (!selected) {
+    transcriptMeta.textContent = 'Chọn một nguồn để xem thông tin transcript.';
+    return;
+  }
+
+  transcriptMeta.innerHTML = '';
+  const id = document.createElement('strong');
+  id.textContent = selected.transcript_id;
+  const detail = document.createTextNode(
+    ` · ${selected.segments.toLocaleString('vi-VN')} đoạn nguồn`
+    + (selected.unclear_markers
+      ? ` · ${selected.unclear_markers} đoạn cần kiểm tra`
+      : ' · Không có marker [không nghe rõ]'),
+  );
+  transcriptMeta.append(id, detail);
+}
 
 function setStatus(kind, title, detail = '') {
   statusPanel.hidden = false;
@@ -57,6 +87,7 @@ function renderPack(payload) {
   keyPoints.innerHTML = '';
   keywords.innerHTML = '';
   questions.innerHTML = '';
+  resultContext.textContent = `${payload.transcript.transcript_id} · ${displayTitle(payload.transcript.title)}`;
 
   const pack = payload.study_pack;
   pack.key_points.forEach((item) => {
@@ -90,12 +121,14 @@ function renderPack(payload) {
     reveal.addEventListener('click', () => {
       answer.hidden = !answer.hidden;
       reveal.textContent = answer.hidden ? 'Hiện đáp án' : 'Ẩn đáp án';
+      reveal.setAttribute('aria-expanded', String(!answer.hidden));
     });
 
     const feedbackButton = fragment.querySelector('.feedback-button');
     const feedbackReasons = fragment.querySelector('.feedback-reasons');
     feedbackButton.addEventListener('click', () => {
       feedbackReasons.hidden = !feedbackReasons.hidden;
+      feedbackButton.setAttribute('aria-expanded', String(!feedbackReasons.hidden));
     });
     feedbackReasons.querySelectorAll('button').forEach((button) => {
       button.addEventListener('click', () => {
@@ -125,8 +158,9 @@ async function generatePack(event) {
   event.preventDefault();
   result.hidden = true;
   setStatus('loading', 'Đang đọc transcript và tạo câu hỏi...', 'Lời gọi này dùng model thật; thường mất vài giây.');
-  const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = true;
+  submitButton.setAttribute('aria-busy', 'true');
+  submitLabel.textContent = 'Đang tạo Study Pack...';
 
   try {
     const response = await fetch('/api/generate', {
@@ -151,6 +185,8 @@ async function generatePack(event) {
     setStatus('error', 'Không kết nối được backend', error.message);
   } finally {
     submitButton.disabled = false;
+    submitButton.removeAttribute('aria-busy');
+    submitLabel.textContent = 'Tạo Study Pack';
   }
 }
 
@@ -158,20 +194,25 @@ async function loadTranscripts() {
   try {
     const response = await fetch('/api/transcripts');
     const payload = await response.json();
-    transcriptSelect.innerHTML = '<option value="">Chọn một buổi học</option>';
-    payload.transcripts.forEach((transcript) => {
+    if (!response.ok) throw new Error(payload.error || 'Server không trả về danh sách transcript.');
+    transcriptCatalog = payload.transcripts;
+    transcriptSelect.innerHTML = '<option value="">Chọn một nguồn học</option>';
+    transcriptCatalog.forEach((transcript) => {
       const option = document.createElement('option');
       option.value = transcript.file_name;
-      option.textContent = `${transcript.transcript_id} · ${transcript.title.replace('Transcript bài giảng (bản sạch) — ', '')}`;
+      option.textContent = `${transcript.transcript_id} · ${displayTitle(transcript.title)}`;
       transcriptSelect.append(option);
     });
+    transcriptMeta.textContent = `${transcriptCatalog.length} nguồn học sẵn sàng. Chọn một nguồn để bắt đầu.`;
   } catch (error) {
     transcriptSelect.innerHTML = '<option value="">Không tải được transcript</option>';
+    transcriptMeta.textContent = 'Không thể đọc danh sách nguồn từ server.';
     setStatus('error', 'Không tải được data pack', error.message);
   }
 }
 
 form.addEventListener('submit', generatePack);
+transcriptSelect.addEventListener('change', updateTranscriptMeta);
 regenerate.addEventListener('click', () => form.requestSubmit());
 document.querySelector('#close-dialog').addEventListener('click', () => dialog.close());
 dialog.addEventListener('click', (event) => {

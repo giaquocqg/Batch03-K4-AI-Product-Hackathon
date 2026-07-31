@@ -1,7 +1,17 @@
 # AGENTS.md - Project Commands
 
+## Git write policy (mandatory)
+- Never run `git add`, `git commit`, `git push`, create a tag, or open a pull
+  request unless the user explicitly asks to execute that exact Git action in
+  the current turn.
+- Implementing, testing, running locally, deploying locally, reviewing, or
+  drafting a commit message does not authorize any Git write operation.
+- If the user asks to draft or prepare a commit message, provide the proposed
+  message only; do not commit unless they separately and explicitly request it.
+- Leave completed changes uncommitted and report that status to the user.
+
 ## Deploy
-- **Render:** `git add . && git commit -m "message" && git push origin main`
+- **Render (manual, explicit request only):** `git add . && git commit -m "message" && git push origin main`
 - Docker build: `docker build -t study-pack . && docker run -p 8000:8000 study-pack`
 
 ## Test
