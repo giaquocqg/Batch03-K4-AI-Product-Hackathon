@@ -41,8 +41,23 @@ def _chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> List[str
 
 
 class SimpleEmbeddingFunction:
+    name: str = "SimpleEmbeddingFunction"
+
     def __call__(self, input: List[str]) -> List[List[float]]:
         return [[0.1] * 384 for _ in input]
+
+    def name(self) -> str:
+        return self.name
+
+def _get_chroma_collection(client):
+    try:
+        return client.get_collection(name="studypack_lessons")
+    except Exception:
+        try:
+            return client.get_or_create_collection(name="studypack_lessons", embedding_function=SimpleEmbeddingFunction())
+        except Exception:
+            return client.get_or_create_collection(name="studypack_lessons")
+
 
 def sync_vector_db(lesson_code: str, pdf_markdown: str, enrich_summary: str) -> Dict[str, Any]:
     """Sync Vector DB for a specific lesson_code.
@@ -67,10 +82,7 @@ def sync_vector_db(lesson_code: str, pdf_markdown: str, enrich_summary: str) -> 
         import chromadb
 
         client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-        collection = client.get_or_create_collection(
-            name="studypack_lessons",
-            embedding_function=SimpleEmbeddingFunction(),
-        )
+        collection = _get_chroma_collection(client)
 
         # Step 1: Remove old chunks matching lesson_code
         try:
@@ -118,3 +130,35 @@ def sync_vector_db(lesson_code: str, pdf_markdown: str, enrich_summary: str) -> 
             "deleted_old": True,
             "indexed_chunks": total_chunks,
         }
+
+
+def query_vector_db(lesson_code: str, query: str, n_results: int = 3) -> List[str]:
+    """Query ChromaDB for relevant text chunks filtered by lesson_code.
+
+    Args:
+        lesson_code: Unique code of the lesson to filter by.
+        query: User query text or question text to find relevant context.
+        n_results: Maximum number of chunks to return.
+
+    Returns:
+        List of matching document chunk strings.
+    """
+    try:
+        import chromadb
+
+        client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        collection = _get_chroma_collection(client)
+
+        results = collection.query(
+            query_texts=[query],
+            n_results=n_results,
+            where={"lesson_code": lesson_code},
+        )
+
+        docs = results.get("documents", [[]])[0]
+        return docs if docs else []
+
+    except Exception as err:
+        logger.warning(f"ChromaDB query failed: {err}. Returning empty context.")
+        return []
+

@@ -23,6 +23,7 @@ sys.path.insert(0, str(CODEBASE_DIR))
 
 from database import init_db
 from teacher_router import router as teacher_router
+from student_routes import router as student_router
 from study_pack_generator import (
     MissingAPIKeyError,
     UnsupportedObjectiveError,
@@ -50,6 +51,7 @@ app.add_middleware(
 
 # Mount Routers
 app.include_router(teacher_router)
+app.include_router(student_router)
 
 # Directories
 UPLOADS_DIR = CODEBASE_DIR / "uploads"
@@ -172,5 +174,9 @@ async def serve_frontend(file_path: str):
 
 
 if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
     print("🚀 10 mins Study Pack FastAPI server starting at http://127.0.0.1:8000")
     uvicorn.run("web_app:app", host="127.0.0.1", port=8000, reload=True)

@@ -1,15 +1,21 @@
 <!doctype html>
 <html lang="vi">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="10 mins Study Pack — AI Agent Platform cho Giảng viên & Học viên với quy trình HITL Review và Vector DB Sync.">
-  <title>10 mins Study Pack — Teacher Workspace & AI Agent Platform</title>
+  <meta name="description"
+    content="10 mins Study Pack — AI Agent Platform cho Giảng viên & Học viên với quy trình HITL Review và Vector DB Sync.">
+  <title>10 mins Study Pack — Teacher Workspace & Student AI Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
 
   <!-- Top Navigation & Role Switcher -->
@@ -21,7 +27,7 @@
         <span class="brand-sub">AI Agent Platform & HITL</span>
       </div>
     </div>
-    
+
     <nav class="role-tabs">
       <button id="tab-teacher" class="tab-btn active" type="button" onclick="switchTab('teacher')">
         <span class="tab-icon">👩‍🏫</span>
@@ -38,12 +44,13 @@
 
     <!-- ================= TEACHER WORKSPACE ================= -->
     <section id="teacher-view" class="view-section active">
-      
+
       <!-- Teacher Hero Banner -->
       <div class="hero-card teacher-hero">
         <div class="hero-badge">Teacher HITL Workflow</div>
         <h1>Hệ Thống Biên Soạn Bài Giảng 10 Phút & Tạo Đề Trắc Nghiệm AI</h1>
-        <p>Tự động chuyển đổi Slide PDF + Teacher Notes thành Bài giảng 10 phút, tạo 10 câu trắc nghiệm chuẩn Bloom, kiểm duyệt HITL và đồng bộ Vector DB.</p>
+        <p>Tự động chuyển đổi Slide PDF + Teacher Notes thành Bài giảng 10 phút, tạo 10 câu trắc nghiệm chuẩn Bloom,
+          kiểm duyệt HITL và đồng bộ Vector DB.</p>
       </div>
 
       <!-- Step 1: Upload & Process Form -->
@@ -64,7 +71,8 @@
 
           <div class="form-group">
             <label for="lesson-title">Tiêu đề bài học</label>
-            <input type="text" id="lesson-title" placeholder="Ví dụ: AI & LLM Foundation trong 10 phút" value="AI & LLM Foundation 2026">
+            <input type="text" id="lesson-title" placeholder="Ví dụ: AI & LLM Foundation trong 10 phút"
+              value="AI & LLM Foundation 2026">
           </div>
 
           <div class="form-group full-width">
@@ -79,7 +87,8 @@
 
           <div class="form-group full-width">
             <label for="teacher-notes">Speaker / Lecture Notes (Ghi chú bài giảng của GV)</label>
-            <textarea id="teacher-notes" rows="4" placeholder="Nhập ghi chú giảng viên, trọng tâm cần nhấn mạnh hoặc ví dụ bài giảng..."></textarea>
+            <textarea id="teacher-notes" rows="4"
+              placeholder="Nhập ghi chú giảng viên, trọng tâm cần nhấn mạnh hoặc ví dụ bài giảng..."></textarea>
           </div>
 
           <div class="form-actions full-width">
@@ -101,7 +110,7 @@
 
       <!-- Step 2 & 3: HITL Review & Editing Screen -->
       <div id="hitl-workspace" class="hitl-container" hidden>
-        
+
         <!-- Summary & Keywords Edit Card -->
         <div class="card hitl-summary-card">
           <div class="card-header border-bottom">
@@ -155,7 +164,8 @@
         <div class="publish-bar card">
           <div class="publish-info">
             <h3>Sẵn sàng xuất bản bài học?</h3>
-            <p>Hệ thống sẽ lưu chính thức vào CSDL, tăng `version` nếu là bản cập nhật, và tự động xóa/ghi đè Vector Embeddings cũ vào Vector DB (ChromaDB).</p>
+            <p>Hệ thống sẽ lưu chính thức vào CSDL, tăng `version` nếu là bản cập nhật, và tự động xóa/ghi đè Vector
+              Embeddings cũ vào Vector DB (ChromaDB).</p>
           </div>
           <div class="publish-actions">
             <button type="button" id="btn-save-draft" class="btn btn-secondary" onclick="saveDraftReview()">
@@ -197,7 +207,9 @@
               </tr>
             </thead>
             <tbody id="teacher-lessons-tbody">
-              <tr><td colspan="6" class="text-center">Đang tải danh sách bài học...</td></tr>
+              <tr>
+                <td colspan="6" class="text-center">Đang tải danh sách bài học...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -208,69 +220,176 @@
 
     <!-- ================= STUDENT PACK WORKSPACE ================= -->
     <section id="student-view" class="view-section">
-      
+
       <div class="hero-card student-hero">
-        <div class="hero-badge">Student Active Recall</div>
-        <h1>Luyện Tập & Ôn Tập Bài Giảng 10 Phút</h1>
-        <p>Chọn bài học để đọc tóm tắt trọng tâm và tự luyện tập các câu hỏi active recall kèm trích dẫn nguồn.</p>
+        <div class="hero-badge">Student Active Learning & AI Agents</div>
+        <h1>10 mins Study Pack — Góc Học Viên & AI Tương Tác</h1>
+        <p>Đọc bài giảng tóm tắt 10 phút, kiểm tra kiến thức qua Quick Quiz 10 câu MCQ, nhận giải thích Socratic từ AI
+          và thử thách lật ngược vai trò với Feynman Mode.</p>
       </div>
 
+      <!-- Lesson Selector Card -->
       <div class="card form-card">
-        <form id="student-generate-form">
-          <div class="form-group">
-            <label for="transcript-select">Chọn bài giảng / Transcript</label>
-            <select id="transcript-select" name="transcript" required>
-              <option value="">Đang tải danh sách...</option>
+        <div class="card-header">
+          <div class="step-badge">Bước 1</div>
+          <div>
+            <h2>Chọn Bài Học Ôn Tập</h2>
+            <p>Chọn 1 bài học đã xuất bản từ giảng viên để xem Study Pack và tương tác với AI Agent.</p>
+          </div>
+        </div>
+
+        <form id="student-lesson-form" class="student-select-form">
+          <div class="form-group full-width">
+            <label for="student-lesson-select">Mã / Tiêu đề Bài học Published <span class="required">*</span></label>
+            <select id="student-lesson-select" class="input-lg" required>
+              <option value="">Đang tải danh sách bài học...</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="objective">Mục tiêu ôn tập</label>
-            <input type="text" id="objective" name="objective" value="Ôn quiz trong 10 phút" readonly>
+          <div class="form-actions full-width">
+            <button type="submit" id="btn-open-pack" class="btn btn-primary btn-lg">
+              <span> Mở Bài Học (Study Pack)</span>
+            </button>
           </div>
-          <button type="submit" class="btn btn-primary">
-            <span>Tạo Study Pack</span> ↗
-          </button>
         </form>
       </div>
 
-      <div id="student-status" class="status-panel" hidden></div>
+      <!-- Active Study Pack Container -->
+      <div id="student-pack-workspace" class="student-pack-container" hidden>
 
-      <div id="student-result" class="result" hidden>
-        <div class="result-heading">
-          <h2>Study Pack 10 Phút</h2>
-          <button id="regenerate" class="btn btn-outline" type="button">Tạo lại ↻</button>
+        <!-- Lesson Header Card -->
+        <div class="card student-pack-header">
+          <div class="pack-header-main">
+            <div>
+              <span class="badge badge-success" id="sp-version-badge">Version 1</span>
+              <h2 id="sp-title">Tiêu đề bài học</h2>
+              <p id="sp-code-sub" class="text-muted">Mã bài học: DAY_01</p>
+            </div>
+            <div class="pack-header-actions">
+              <a id="sp-pdf-link" href="#" target="_blank" class="btn btn-outline btn-sm" hidden>📄 Xem Slide PDF
+                Gốc</a>
+            </div>
+          </div>
+          <div class="keywords-box mt-3">
+            <strong>🔑 Từ khóa trọng tâm:</strong>
+            <div id="sp-keywords-container" class="keywords-list mt-1"></div>
+          </div>
         </div>
 
-        <div id="warnings" class="warnings" hidden></div>
+        <!-- Student Sub-Tabs Navigation -->
+        <div class="student-subtabs">
+          <button id="subtab-summary" class="subtab-btn active" onclick="switchStudentSubTab('summary')">
+            📖 1. Bài Giảng Tóm Tắt & PDF
+          </button>
+          <button id="subtab-quiz" class="subtab-btn" onclick="switchStudentSubTab('quiz')">
+            ✍️ 2. Quick Quiz 10 Câu MCQ
+          </button>
+          <button id="subtab-feynman" class="subtab-btn" onclick="switchStudentSubTab('feynman')">
+            🔄 3. Feynman Mode (Lật Ngược Vai Trò)
+          </button>
+        </div>
 
-        <section class="pack-section">
-          <h3>📌 Ý Trọng Tâm</h3>
-          <ol id="key-points" class="key-points"></ol>
-        </section>
+        <!-- Tab 1: Enrich Summary & Teacher Notes -->
+        <div id="student-tab-summary" class="student-tab-content active">
+          <div class="card summary-card">
+            <div class="card-header border-bottom mb-3">
+              <h2>📖 Bài Giảng Tóm Tắt 10 Phút</h2>
+            </div>
+            <div id="sp-enrich-summary" class="enrich-summary-text markdown-body"></div>
+          </div>
 
-        <section class="pack-section">
-          <h3>🏷️ Keyword Cần Ghi Nhớ</h3>
-          <div id="keywords" class="keywords"></div>
-        </section>
+          <div id="sp-teacher-notes-card" class="card notes-card mt-4" hidden>
+            <div class="card-header border-bottom mb-3">
+              <div class="notes-header-badge">
+                <span class="badge badge-warning">📝 Ghi chú từ Giảng viên</span>
+              </div>
+              <h2 class="mt-1">Speaker & Lecture Notes</h2>
+            </div>
+            <div id="sp-teacher-notes" class="teacher-notes-body markdown-body"></div>
+          </div>
+        </div>
 
-        <section class="pack-section">
-          <h3>💡 Active Recall & Trắc Nghiệm</h3>
-          <div id="questions" class="questions"></div>
-        </section>
+        <!-- Tab 2: Quick Quiz 10 MCQs & Instant Grading -->
+        <div id="student-tab-quiz" class="student-tab-content">
+          <div class="card">
+            <div class="card-header border-bottom">
+              <div>
+                <h2>Quick Quiz 10 Câu Trắc Nghiệm</h2>
+                <p>Làm 10 câu MCQ để kiểm tra mức độ hiểu bài. Chấm điểm ngay lập tức và hỏi AI Socratic giải thích câu
+                  sai!</p>
+              </div>
+              <div id="quiz-score-badge" class="badge badge-primary" hidden>
+                Điểm số: <strong id="score-text">0/10</strong>
+              </div>
+            </div>
+
+            <form id="quiz-form">
+              <div id="quiz-questions-container" class="quiz-grid">
+                <!-- MCQ items injected by JS -->
+              </div>
+
+              <div class="quiz-submit-bar mt-4">
+                <button type="submit" id="btn-submit-quiz" class="btn btn-success btn-lg">
+                  <span>✅ Nộp Bài & Chấm Điểm Ngay</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tab 3: Feynman Mode (Reverse Role Chatbot) -->
+        <div id="student-tab-feynman" class="student-tab-content">
+          <div class="card feynman-card">
+            <div class="card-header border-bottom">
+              <div>
+                <h2>🔄 Feynman Mode — "Lật Ngược Vai Trò" (Chatbot 2)</h2>
+                <p>LLM đóng vai Học sinh tò mò nhờ bạn (đóng vai Thầy giáo/Chuyên gia) giải thích bài học này!</p>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="startFeynmanChat()">
+                <span>🚀 Khởi Tạo Phiên Chat Feynman</span>
+              </button>
+            </div>
+
+            <div id="feynman-chat-container" class="chat-wrapper mt-3" hidden>
+              <div id="feynman-messages-list" class="messages-list"></div>
+
+              <form id="feynman-chat-form" class="chat-input-box mt-3">
+                <textarea id="feynman-input" rows="3" placeholder="Nhập lời giải thích của Thầy giáo cho Học sinh AI..."
+                  required></textarea>
+                <button type="submit" id="btn-send-feynman" class="btn btn-primary">
+                  <span>Gửi lời giải thích ➔</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </section>
 
   </main>
 
-  <!-- Citation Dialog -->
-  <dialog id="citation-dialog" class="custom-dialog">
-    <button id="close-dialog" class="dialog-close" type="button" aria-label="Đóng">×</button>
+  <!-- Socratic Tutor Chatbot Dialog Modal -->
+  <dialog id="socratic-dialog" class="custom-dialog chat-dialog">
+    <button type="button" class="dialog-close" onclick="closeSocraticModal()">×</button>
     <div class="dialog-content">
-      <div class="dialog-badge">Trích dẫn nguồn bài giảng</div>
-      <h3 id="citation-code">Citation</h3>
-      <div id="citation-text" class="citation-body"></div>
-      <p id="citation-warning" class="citation-warning" hidden>⚠️ Nguồn có đoạn [không nghe rõ], cần kiểm tra bản gốc.</p>
+      <div class="dialog-badge">🤖 Chatbot 1: Socratic Tutor Agent</div>
+      <h3 id="soc-q-title">Giải Thích & Hướng Dẫn Tư Duy Câu Sai</h3>
+      <p id="soc-q-sub" class="text-muted"></p>
+
+      <div id="socratic-messages-list" class="messages-list mt-3"></div>
+
+      <form id="socratic-chat-form" class="chat-input-box mt-3">
+        <input type="hidden" id="soc-lesson-code">
+        <input type="hidden" id="soc-question-id">
+        <input type="hidden" id="soc-user-option">
+        <input type="hidden" id="soc-session-id">
+
+        <input type="text" id="soc-user-input" placeholder="Hỏi thêm trợ giảng Socratic về câu hỏi này..." required>
+        <button type="submit" class="btn btn-primary">
+          <span>Gửi ➔</span>
+        </button>
+      </form>
     </div>
   </dialog>
 
@@ -279,14 +398,16 @@
     <button type="button" class="dialog-close" onclick="document.querySelector('#regen-mcq-dialog').close()">×</button>
     <div class="dialog-content">
       <h3>Tạo Lại Câu Hỏi Trắc Nghiệm này bằng AI</h3>
-      <p>Nhập chỉ dẫn thêm cho AI nếu muốn thay đổi góc độ câu hỏi (ví dụ: "Tạo câu hỏi độ khó cao hơn" hoặc "Tập trung vào ví dụ thực tế").</p>
+      <p>Nhập chỉ dẫn thêm cho AI nếu muốn thay đổi góc độ câu hỏi (ví dụ: "Tạo câu hỏi độ khó cao hơn" hoặc "Tập trung
+        vào ví dụ thực tế").</p>
       <input type="hidden" id="regen-q-id">
       <div class="form-group">
         <label for="regen-instruction">Yêu cầu bổ sung (Tùy chọn)</label>
         <textarea id="regen-instruction" rows="3" placeholder="Nhập chỉ dẫn chi tiết..."></textarea>
       </div>
       <div class="dialog-actions">
-        <button type="button" class="btn btn-secondary" onclick="document.querySelector('#regen-mcq-dialog').close()">Hủy</button>
+        <button type="button" class="btn btn-secondary"
+          onclick="document.querySelector('#regen-mcq-dialog').close()">Hủy</button>
         <button type="button" class="btn btn-primary" onclick="confirmRegenerateMcq()">🚀 Sinh lại câu này</button>
       </div>
     </div>
@@ -294,4 +415,5 @@
 
   <script src="/app.js" defer></script>
 </body>
+
 </html>

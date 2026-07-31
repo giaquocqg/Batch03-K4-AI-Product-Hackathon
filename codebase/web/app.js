@@ -1,9 +1,12 @@
 /**
  * 10 mins Study Pack — Frontend Logic for Teacher HITL Workspace & Student Flow.
+ * Full integration with Socratic Tutor AI & Feynman Reverse-Role Mode.
  */
 
 let currentLesson = null;
-let activeTranscript = '';
+let currentStudentPack = null;
+let activeFeynmanSessionId = null;
+let activeSocraticSessionId = null;
 
 // --- Tab Switching ---
 function switchTab(role) {
@@ -13,105 +16,157 @@ function switchTab(role) {
   const studentView = document.getElementById('student-view');
 
   if (role === 'teacher') {
-    teacherTab.classList.add('active');
-    studentTab.classList.remove('active');
-    teacherView.classList.add('active');
-    studentView.classList.remove('active');
+    if (teacherTab) teacherTab.classList.add('active');
+    if (studentTab) studentTab.classList.remove('active');
+    if (teacherView) teacherView.classList.add('active');
+    if (studentView) studentView.classList.remove('active');
     loadTeacherLessons();
   } else {
-    studentTab.classList.add('active');
-    teacherTab.classList.remove('active');
-    studentView.classList.add('active');
-    teacherView.classList.remove('active');
-    loadTranscripts();
+    if (studentTab) studentTab.classList.add('active');
+    if (teacherTab) teacherTab.classList.remove('active');
+    if (studentView) studentView.classList.add('active');
+    if (teacherView) teacherView.classList.remove('active');
+    loadPublishedLessonsForStudent();
   }
 }
 
-// --- File Select UI ---
-const pdfFileInput = document.getElementById('pdf-file');
-const fileSelectedName = document.getElementById('file-selected-name');
-
-if (pdfFileInput) {
-  pdfFileInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      fileSelectedName.textContent = `📄 File đã chọn: ${e.target.files[0].name} (${(e.target.files[0].size / 1024 / 1024).toFixed(2)} MB)`;
-      fileSelectedName.hidden = false;
-    }
-  });
+// --- Helper Functions ---
+function escapeHtml(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-// --- Teacher Upload & Run Pipeline ---
-const teacherUploadForm = document.getElementById('teacher-upload-form');
-const teacherProgress = document.getElementById('teacher-progress');
-const hitlWorkspace = document.getElementById('hitl-workspace');
+function renderMarkdown(text) {
+  if (!text || typeof text !== 'string') return '';
 
-if (teacherUploadForm) {
-  teacherUploadForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  let cleanedText = text.trim();
 
-    const lessonCode = document.getElementById('lesson-code').value.trim();
-    const lessonTitle = document.getElementById('lesson-title').value.trim();
-    const pdfFile = pdfFileInput.files[0];
-    const teacherNotes = document.getElementById('teacher-notes').value.trim();
+  // Remove markdown codeblock fence wrappers (e.g. ```markdown ... ```) if pasted inside notes
+  cleanedText = cleanedText
+    .replace(/^```(?:markdown|md)?\s*\n/gim, '')
+    .replace(/\n```\s*$/gim, '')
+    .replace(/```markdown\n?/gi, '')
+    .replace(/```md\n?/gi, '');
 
-    if (!pdfFile) {
-      alert("Vui lòng chọn file Slide PDF!");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', pdfFile);
-    formData.append('lesson_code', lessonCode);
-    formData.append('title', lessonTitle);
-    formData.append('teacher_notes', teacherNotes);
-
-    teacherProgress.hidden = false;
-    hitlWorkspace.hidden = true;
-    document.getElementById('publish-alert').hidden = true;
-    document.getElementById('btn-run-pipeline').disabled = true;
-
+  // Use marked.js if available
+  if (typeof marked !== 'undefined') {
     try {
-      const res = await fetch('/api/teacher/upload-slide', {
-        method: 'POST',
-        body: formData,
-      });
+      if (typeof marked.parse === 'function') {
+        return marked.parse(cleanedText);
+      } else if (typeof marked === 'function') {
+        return marked(cleanedText);
+      }
+    } catch (err) {
+      console.warn("marked parsing warning:", err);
+    }
+  }
 
-      const data = await res.json();
-      if (!res.ok) {
+  // Fallback regex markdown parser
+  let raw = escapeHtml(cleanedText);
+  raw = raw.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  raw = raw.replace(/`([^`]+)`/g, '<code>$1</code>');
+  raw = raw.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  raw = raw.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  raw = raw.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  raw = raw.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  raw = raw.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  raw = raw.replace(/^&gt;\s?(.*$)/gim, '<blockquote>$1</blockquote>');
+  raw = raw.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li>$1</li>');
+  raw = raw.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+  raw = raw.replace(/\n\n/g, '</p><p>');
+  raw = raw.replace(/\n/g, '<br>');
+
+  return `<p>${raw}</p>`;
+}
+
+
+// =========================================================================
+// ========================= TEACHER WORKSPACE =============================
+// =========================================================================
+
+function handleTeacherUpload(e) {
+  e.preventDefault();
+
+  const pdfFileInput = document.getElementById('pdf-file');
+  const lessonCode = document.getElementById('lesson-code').value.trim();
+  const lessonTitle = document.getElementById('lesson-title').value.trim();
+  const pdfFile = pdfFileInput ? pdfFileInput.files[0] : null;
+  const teacherNotes = document.getElementById('teacher-notes').value.trim();
+
+  if (!pdfFile) {
+    alert("Vui lòng chọn file Slide PDF!");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', pdfFile);
+  formData.append('lesson_code', lessonCode);
+  formData.append('title', lessonTitle);
+  formData.append('teacher_notes', teacherNotes);
+
+  const teacherProgress = document.getElementById('teacher-progress');
+  const hitlWorkspace = document.getElementById('hitl-workspace');
+  const btnRun = document.getElementById('btn-run-pipeline');
+
+  if (teacherProgress) teacherProgress.hidden = false;
+  if (hitlWorkspace) hitlWorkspace.hidden = true;
+  const publishAlert = document.getElementById('publish-alert');
+  if (publishAlert) publishAlert.hidden = true;
+  if (btnRun) btnRun.disabled = true;
+
+  fetch('/api/teacher/upload-slide', {
+    method: 'POST',
+    body: formData,
+  })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
         alert(`Lỗi: ${data.detail || 'Không thể tạo DRAFT bài học'}`);
         return;
       }
 
       currentLesson = data.lesson;
       renderHitlWorkspace(currentLesson);
-      hitlWorkspace.hidden = false;
-      hitlWorkspace.scrollIntoView({ behavior: 'smooth' });
-
-    } catch (err) {
+      if (hitlWorkspace) {
+        hitlWorkspace.hidden = false;
+        hitlWorkspace.scrollIntoView({ behavior: 'smooth' });
+      }
+    })
+    .catch(err => {
       alert(`Lỗi kết nối server: ${err.message}`);
-    } finally {
-      teacherProgress.hidden = true;
-      document.getElementById('btn-run-pipeline').disabled = false;
-    }
-  });
+    })
+    .finally(() => {
+      if (teacherProgress) teacherProgress.hidden = true;
+      if (btnRun) btnRun.disabled = false;
+    });
 }
 
-// --- Render HITL Workspace ---
 function renderHitlWorkspace(lesson) {
-  document.getElementById('hitl-title').value = lesson.title || '';
-  
+  const titleInput = document.getElementById('hitl-title');
   const summaryInput = document.getElementById('hitl-summary');
-  summaryInput.value = lesson.enrich_summary || '';
-  updateWordCount(lesson.enrich_summary || '');
+  const keywordsInput = document.getElementById('hitl-keywords');
+  const versionBadge = document.getElementById('hitl-version-badge');
 
-  summaryInput.addEventListener('input', (e) => {
-    updateWordCount(e.target.value);
-  });
+  if (titleInput) titleInput.value = lesson.title || '';
+  if (summaryInput) {
+    summaryInput.value = lesson.enrich_summary || '';
+    updateWordCount(lesson.enrich_summary || '');
+    summaryInput.oninput = (e) => updateWordCount(e.target.value);
+  }
 
-  const keywordsList = lesson.keywords || [];
-  document.getElementById('hitl-keywords').value = keywordsList.join(', ');
+  if (keywordsInput) {
+    const keywordsList = lesson.keywords || [];
+    keywordsInput.value = keywordsList.join(', ');
+  }
 
-  document.getElementById('hitl-version-badge').textContent = `Version ${lesson.version || 1} (DRAFT)`;
+  if (versionBadge) {
+    versionBadge.textContent = `Version ${lesson.version || 1} (DRAFT)`;
+  }
 
   renderMcqList(lesson.questions || []);
 }
@@ -119,17 +174,19 @@ function renderHitlWorkspace(lesson) {
 function updateWordCount(text) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
   const badge = document.getElementById('word-count-badge');
-  badge.textContent = `${words} từ`;
-  if (words >= 300 && words <= 500) {
-    badge.className = 'badge badge-success';
-  } else {
-    badge.className = 'badge';
+  if (badge) {
+    badge.textContent = `${words} từ`;
+    if (words >= 300 && words <= 500) {
+      badge.className = 'badge badge-success';
+    } else {
+      badge.className = 'badge';
+    }
   }
 }
 
-// --- Render MCQ List ---
 function renderMcqList(questions) {
   const container = document.getElementById('mcq-list-container');
+  if (!container) return;
   container.innerHTML = '';
 
   let approvedCount = 0;
@@ -198,7 +255,8 @@ function renderMcqList(questions) {
     container.appendChild(card);
   });
 
-  document.getElementById('approved-count').textContent = `${approvedCount}/${questions.length} Đã duyệt`;
+  const countBadge = document.getElementById('approved-count');
+  if (countBadge) countBadge.textContent = `${approvedCount}/${questions.length} Đã duyệt`;
 }
 
 function toggleApprove(qId, isChecked) {
@@ -210,7 +268,6 @@ function toggleApprove(qId, isChecked) {
   renderMcqList(currentLesson.questions);
 }
 
-// --- Collect Edits ---
 function collectEdits() {
   if (!currentLesson) return null;
 
@@ -257,7 +314,6 @@ function collectEdits() {
   };
 }
 
-// --- Save Draft Review ---
 async function saveDraftReview() {
   const payload = collectEdits();
   if (!payload) return;
@@ -280,24 +336,23 @@ async function saveDraftReview() {
   }
 }
 
-// --- Publish Lesson ---
 async function publishLesson() {
   const edits = collectEdits();
   if (!edits) return;
 
   const btnPublish = document.getElementById('btn-publish');
-  btnPublish.disabled = true;
-  btnPublish.innerHTML = '<span>⏳ Đang xuất bản & Sync Vector DB...</span>';
+  if (btnPublish) {
+    btnPublish.disabled = true;
+    btnPublish.innerHTML = '<span>⏳ Đang xuất bản & Sync Vector DB...</span>';
+  }
 
   try {
-    // 1. Save edits
     await fetch('/api/teacher/review', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(edits),
     });
 
-    // 2. Call Publish endpoint
     const res = await fetch(`/api/teacher/publish/${currentLesson.id}`, {
       method: 'POST',
     });
@@ -308,35 +363,43 @@ async function publishLesson() {
       return;
     }
 
-    // Success alert UI
     const alertBox = document.getElementById('publish-alert');
-    document.getElementById('publish-alert-title').textContent = data.message;
-    document.getElementById('publish-alert-desc').textContent = 
-      `Vector DB Sync Status: ${data.vector_db_sync.status} (${data.vector_db_sync.indexed_chunks} chunks đã được lưu vào ChromaDB).`;
-    alertBox.hidden = false;
-    alertBox.scrollIntoView({ behavior: 'smooth' });
+    const alertTitle = document.getElementById('publish-alert-title');
+    const alertDesc = document.getElementById('publish-alert-desc');
+    if (alertTitle) alertTitle.textContent = data.message;
+    if (alertDesc) alertDesc.textContent = `Vector DB Sync Status: ${data.vector_db_sync.status} (${data.vector_db_sync.indexed_chunks} chunks đã được lưu vào ChromaDB).`;
+    if (alertBox) {
+      alertBox.hidden = false;
+      alertBox.scrollIntoView({ behavior: 'smooth' });
+    }
 
     loadTeacherLessons();
 
   } catch (err) {
     alert(`Lỗi kết nối: ${err.message}`);
   } finally {
-    btnPublish.disabled = false;
-    btnPublish.innerHTML = '<span>✅ Approve & Publish (Sync Vector DB)</span>';
+    if (btnPublish) {
+      btnPublish.disabled = false;
+      btnPublish.innerHTML = '<span>✅ Approve & Publish (Sync Vector DB)</span>';
+    }
   }
 }
 
-// --- Regenerate Single MCQ ---
 function openRegenMcqModal(qId) {
-  document.getElementById('regen-q-id').value = qId;
-  document.getElementById('regen-instruction').value = '';
-  document.getElementById('regen-mcq-dialog').showModal();
+  const qIdInput = document.getElementById('regen-q-id');
+  const instInput = document.getElementById('regen-instruction');
+  const dialog = document.getElementById('regen-mcq-dialog');
+
+  if (qIdInput) qIdInput.value = qId;
+  if (instInput) instInput.value = '';
+  if (dialog) dialog.showModal();
 }
 
 async function confirmRegenerateMcq() {
   const qId = document.getElementById('regen-q-id').value;
   const customInst = document.getElementById('regen-instruction').value.trim();
-  document.getElementById('regen-mcq-dialog').close();
+  const dialog = document.getElementById('regen-mcq-dialog');
+  if (dialog) dialog.close();
 
   if (!currentLesson || !qId) return;
 
@@ -366,7 +429,6 @@ async function confirmRegenerateMcq() {
   }
 }
 
-// --- Load Published Lessons Table ---
 async function loadTeacherLessons() {
   const tbody = document.getElementById('teacher-lessons-tbody');
   if (!tbody) return;
@@ -408,127 +470,509 @@ async function loadLessonForReview(lessonId) {
     if (res.ok && data.lesson) {
       currentLesson = data.lesson;
       renderHitlWorkspace(currentLesson);
-      hitlWorkspace.hidden = false;
-      hitlWorkspace.scrollIntoView({ behavior: 'smooth' });
+      const workspace = document.getElementById('hitl-workspace');
+      if (workspace) {
+        workspace.hidden = false;
+        workspace.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   } catch (err) {
     alert(`Không tải được chi tiết bài học: ${err.message}`);
   }
 }
 
-// --- Helper Functions ---
-function escapeHtml(str) {
-  if (typeof str !== 'string') return '';
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+
+// =========================================================================
+// ========================= STUDENT FLOW LOGIC ============================
+// =========================================================================
+
+// 1. Load Published Lessons for Student Dropdown
+async function loadPublishedLessonsForStudent() {
+  const selectEl = document.getElementById('student-lesson-select');
+  if (!selectEl) {
+    console.warn("Element #student-lesson-select not found yet.");
+    return;
+  }
+
+  selectEl.innerHTML = '<option value="">Đang tải danh sách bài học...</option>';
+
+  try {
+    const res = await fetch('/api/student/lessons');
+    const data = await res.json();
+    console.log("Student lessons loaded:", data);
+
+    let list = data.lessons || [];
+
+    // Fallback to teacher lessons if no published lessons
+    if (list.length === 0) {
+      const teacherRes = await fetch('/api/teacher/lessons');
+      const teacherData = await teacherRes.json();
+      list = teacherData.lessons || [];
+    }
+
+    selectEl.innerHTML = '';
+
+    if (list.length === 0) {
+      selectEl.innerHTML = '<option value="">Chưa có bài học nào được xuất bản từ Giảng viên.</option>';
+      return;
+    }
+
+    selectEl.innerHTML = '<option value="">-- Chọn một bài học để bắt đầu --</option>';
+    list.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l.lesson_code || l.id;
+      opt.textContent = `[${l.lesson_code}] ${l.title} (v${l.version} - ${l.questions_count} câu MCQ)`;
+      selectEl.appendChild(opt);
+    });
+
+  } catch (err) {
+    console.error("Lỗi loadPublishedLessonsForStudent:", err);
+    selectEl.innerHTML = `<option value="">Lỗi tải danh sách: ${err.message}</option>`;
+  }
 }
 
-// --- Student Flow Handlers ---
-const studentForm = document.getElementById('student-generate-form');
-const transcriptSelect = document.getElementById('transcript-select');
-const studentStatus = document.getElementById('student-status');
-const studentResult = document.getElementById('student-result');
+// 2. Open Student Study Pack
+async function openStudentStudyPack(lessonCode) {
+  const btnOpen = document.getElementById('btn-open-pack');
+  if (btnOpen) btnOpen.disabled = true;
 
-if (studentForm) {
-  studentForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    studentResult.hidden = true;
-    setStudentStatus('loading', 'Đang nén transcript và tạo Study Pack 10 phút...');
+  try {
+    const res = await fetch(`/api/student/lessons/${lessonCode}`);
+    const data = await res.json();
 
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transcript: transcriptSelect.value,
-          objective: document.getElementById('objective').value,
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        setStudentStatus('error', 'Chưa thể tạo Study Pack', payload.detail || 'Backend trả về lỗi.');
-        return;
+    if (!res.ok) {
+      alert(`Lỗi: ${data.detail || 'Không tải được bài học.'}`);
+      return;
+    }
+
+    currentStudentPack = data;
+    renderStudentStudyPack(currentStudentPack);
+    const workspace = document.getElementById('student-pack-workspace');
+    if (workspace) {
+      workspace.hidden = false;
+      workspace.scrollIntoView({ behavior: 'smooth' });
+    }
+
+  } catch (err) {
+    alert(`Lỗi kết nối: ${err.message}`);
+  } finally {
+    if (btnOpen) btnOpen.disabled = false;
+  }
+}
+
+// 3. Render Student Study Pack Components
+function renderStudentStudyPack(pack) {
+  const titleEl = document.getElementById('sp-title');
+  const codeSubEl = document.getElementById('sp-code-sub');
+  const versionEl = document.getElementById('sp-version-badge');
+  const pdfLink = document.getElementById('sp-pdf-link');
+  const kwContainer = document.getElementById('sp-keywords-container');
+  const summaryEl = document.getElementById('sp-enrich-summary');
+  const notesCard = document.getElementById('sp-teacher-notes-card');
+  const notesEl = document.getElementById('sp-teacher-notes');
+
+  if (titleEl) titleEl.textContent = pack.title || pack.lesson_code;
+  if (codeSubEl) codeSubEl.textContent = `Mã bài học: ${pack.lesson_code}`;
+  if (versionEl) versionEl.textContent = `Version ${pack.version || 1}`;
+
+  if (pdfLink) {
+    if (pack.pdf_url) {
+      pdfLink.href = pack.pdf_url;
+      pdfLink.hidden = false;
+    } else {
+      pdfLink.hidden = true;
+    }
+  }
+
+  if (kwContainer) {
+    kwContainer.innerHTML = '';
+    (pack.keywords || []).forEach(kw => {
+      const chip = document.createElement('span');
+      chip.className = 'badge';
+      chip.textContent = kw;
+      kwContainer.appendChild(chip);
+    });
+  }
+
+  if (summaryEl) summaryEl.innerHTML = renderMarkdown(pack.enrich_summary || 'Chưa có nội dung tóm tắt.');
+
+  if (notesCard && notesEl) {
+    if (pack.teacher_notes && pack.teacher_notes.trim()) {
+      notesEl.innerHTML = renderMarkdown(pack.teacher_notes);
+      notesCard.hidden = false;
+    } else {
+      notesCard.hidden = true;
+    }
+  }
+
+  renderStudentQuickQuiz(pack.questions || []);
+  switchStudentSubTab('summary');
+}
+
+// 4. Subtab Switcher
+function switchStudentSubTab(tabName) {
+  const tabs = ['summary', 'quiz', 'feynman'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`subtab-${t}`);
+    const content = document.getElementById(`student-tab-${t}`);
+    if (btn && content) {
+      if (t === tabName) {
+        btn.classList.add('active');
+        content.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+        content.classList.remove('active');
       }
-      renderStudentPack(payload);
-    } catch (error) {
-      setStudentStatus('error', 'Không kết nối được backend', error.message);
     }
   });
 }
 
-function setStudentStatus(kind, title, detail = '') {
-  studentStatus.hidden = false;
-  studentStatus.className = `status-panel alert ${kind === 'error' ? 'alert-danger' : 'alert-info'}`;
-  studentStatus.innerHTML = `<strong>${title}</strong>${detail ? `<p>${detail}</p>` : ''}`;
+// 5. Render Quick Quiz for Student
+function renderStudentQuickQuiz(questions) {
+  const container = document.getElementById('quiz-questions-container');
+  const scoreBadge = document.getElementById('quiz-score-badge');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (scoreBadge) scoreBadge.hidden = true;
+
+  if (questions.length === 0) {
+    container.innerHTML = '<p class="text-muted">Chưa có câu hỏi trắc nghiệm nào cho bài học này.</p>';
+    return;
+  }
+
+  questions.forEach((q, idx) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-q-card';
+    card.id = `quiz-card-${q.id || idx}`;
+
+    const options = q.options || {};
+    let optionsHtml = '';
+
+    ['A', 'B', 'C', 'D'].forEach(optKey => {
+      if (options[optKey]) {
+        optionsHtml += `
+          <label class="option-label">
+            <input type="radio" name="q_${q.id || idx}" value="${optKey}">
+            <span><strong>${optKey}.</strong> ${escapeHtml(options[optKey])}</span>
+          </label>
+        `;
+      }
+    });
+
+    card.innerHTML = `
+      <div class="quiz-q-title">Câu ${idx + 1}: ${escapeHtml(q.question_text)}</div>
+      <div class="options-list">
+        ${optionsHtml}
+      </div>
+      <div id="quiz-result-${q.id || idx}" class="quiz-result-box" hidden></div>
+    `;
+
+    container.appendChild(card);
+  });
 }
 
-function renderStudentPack(payload) {
-  const pack = payload.study_pack;
-  const keyPointsEl = document.getElementById('key-points');
-  const keywordsEl = document.getElementById('keywords');
-  const questionsEl = document.getElementById('questions');
+// 6. Handle Quiz Submission & Grading
+function handleQuizSubmit(e) {
+  e.preventDefault();
+  if (!currentStudentPack || !currentStudentPack.questions) return;
 
-  keyPointsEl.innerHTML = '';
-  keywordsEl.innerHTML = '';
-  questionsEl.innerHTML = '';
+  const quizForm = document.getElementById('quiz-form');
+  const questions = currentStudentPack.questions;
+  let correctCount = 0;
 
-  if (pack.key_points) {
-    pack.key_points.forEach((item) => {
-      const li = document.createElement('li');
-      li.textContent = item.content || item;
-      keyPointsEl.appendChild(li);
-    });
-  }
+  questions.forEach((q, idx) => {
+    const qKey = q.id || idx;
+    const card = document.getElementById(`quiz-card-${qKey}`);
+    const resultBox = document.getElementById(`quiz-result-${qKey}`);
+    const selectedRadio = quizForm ? quizForm.querySelector(`input[name="q_${qKey}"]:checked`) : null;
 
-  if (pack.keywords) {
-    pack.keywords.forEach((kw) => {
-      const chip = document.createElement('span');
-      chip.className = 'badge';
-      chip.textContent = kw;
-      keywordsEl.appendChild(chip);
-    });
-  }
+    const userChoice = selectedRadio ? selectedRadio.value : null;
+    const isCorrect = userChoice === q.correct_option;
 
-  if (pack.questions) {
-    pack.questions.forEach((q, i) => {
-      const div = document.createElement('div');
-      div.className = 'card';
-      div.innerHTML = `
-        <h4>Câu ${i + 1}: ${escapeHtml(q.question || q.question_text || '')}</h4>
-        <p><strong>Đáp án:</strong> ${escapeHtml(q.answer || q.correct_option || '')}</p>
-      `;
-      questionsEl.appendChild(div);
-    });
-  }
+    if (card) card.className = `quiz-q-card ${isCorrect ? 'correct' : 'incorrect'}`;
 
-  studentStatus.hidden = true;
-  studentResult.hidden = false;
-}
-
-async function loadTranscripts() {
-  if (!transcriptSelect) return;
-  try {
-    const res = await fetch('/api/transcripts');
-    const data = await res.json();
-    transcriptSelect.innerHTML = '<option value="">-- Chọn bài học / transcript --</option>';
-    if (data.transcripts) {
-      data.transcripts.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = t;
-        transcriptSelect.appendChild(opt);
-      });
+    if (resultBox) {
+      if (isCorrect) {
+        correctCount++;
+        resultBox.className = 'quiz-result-box alert alert-success mt-3';
+        resultBox.innerHTML = `
+          <strong>✅ Chính xác!</strong>
+          <p class="mt-1">${escapeHtml(q.explanation || 'Xuất sắc!')}</p>
+        `;
+      } else {
+        resultBox.className = 'quiz-result-box alert alert-danger mt-3';
+        resultBox.innerHTML = `
+          <strong>❌ Chưa chính xác!</strong>
+          <p class="mt-1">Đáp án đúng chính thức: <strong>${q.correct_option}</strong></p>
+          <p class="text-muted mt-1">${escapeHtml(q.explanation || '')}</p>
+          <button type="button" class="btn-socratic mt-2" onclick="openSocraticModal('${currentStudentPack.lesson_code}', '${q.id}', '${userChoice || 'N/A'}', '${escapeHtml(q.question_text)}')">
+            🤖 Hỏi AI Socratic Giải Thích Thêm ➔
+          </button>
+        `;
+      }
+      resultBox.hidden = false;
     }
-  } catch (err) {
-    transcriptSelect.innerHTML = '<option value="">Không tải được danh sách</option>';
+  });
+
+  const scoreBadge = document.getElementById('quiz-score-badge');
+  const scoreText = document.getElementById('score-text');
+  if (scoreText) scoreText.textContent = `${correctCount}/${questions.length} (${Math.round((correctCount / questions.length) * 100)}%)`;
+  if (scoreBadge) {
+    scoreBadge.hidden = false;
+    scoreBadge.scrollIntoView({ behavior: 'smooth' });
   }
 }
 
-// Initial Load
+
+// =========================================================================
+// ==================== CHATBOT 1: SOCRATIC TUTOR AGENT ====================
+// =========================================================================
+
+function openSocraticModal(lessonCode, questionId, userOption, questionText) {
+  const dialog = document.getElementById('socratic-dialog');
+  document.getElementById('soc-lesson-code').value = lessonCode;
+  document.getElementById('soc-question-id').value = questionId || '';
+  document.getElementById('soc-user-option').value = userOption || 'N/A';
+
+  activeSocraticSessionId = `socratic_${Date.now()}`;
+  document.getElementById('soc-session-id').value = activeSocraticSessionId;
+
+  document.getElementById('soc-q-title').textContent = `Giải thích câu hỏi trắc nghiệm`;
+  document.getElementById('soc-q-sub').textContent = `"${questionText}" (Lựa chọn của bạn: ${userOption})`;
+
+  const list = document.getElementById('socratic-messages-list');
+  if (list) {
+    list.innerHTML = `
+      <div class="msg-bubble msg-ai">
+        <strong>Trợ giảng Socratic:</strong><br>
+        Chào bạn! Tôi đang xem lại câu hỏi này. Bạn có muốn hỏi thêm điều gì cụ thể hoặc muốn tôi giải thích bản chất khái niệm chưa đúng không?
+      </div>
+    `;
+  }
+
+  if (dialog) dialog.showModal();
+}
+
+function closeSocraticModal() {
+  const dialog = document.getElementById('socratic-dialog');
+  if (dialog) dialog.close();
+}
+
+function handleSocraticChatSubmit(e) {
+  e.preventDefault();
+
+  const lessonCode = document.getElementById('soc-lesson-code').value;
+  const questionId = document.getElementById('soc-question-id').value;
+  const userOption = document.getElementById('soc-user-option').value;
+  const sessionId = document.getElementById('soc-session-id').value;
+  const userInputEl = document.getElementById('soc-user-input');
+  const userInput = userInputEl ? userInputEl.value.trim() : '';
+
+  if (!userInput) return;
+
+  const list = document.getElementById('socratic-messages-list');
+  if (!list) return;
+
+  const userBubble = document.createElement('div');
+  userBubble.className = 'msg-bubble msg-user';
+  userBubble.textContent = userInput;
+  list.appendChild(userBubble);
+
+  if (userInputEl) userInputEl.value = '';
+  list.scrollTop = list.scrollHeight;
+
+  const loadingBubble = document.createElement('div');
+  loadingBubble.className = 'msg-bubble msg-ai';
+  loadingBubble.innerHTML = '<em>Trợ giảng Socratic đang suy nghĩ và tra cứu Vector DB...</em>';
+  list.appendChild(loadingBubble);
+  list.scrollTop = list.scrollHeight;
+
+  fetch('/api/student/chat/explain', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      lesson_code: lessonCode,
+      question_id: questionId,
+      user_selected_option: userOption,
+      user_message: userInput,
+      session_id: sessionId,
+    }),
+  })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (ok && data.reply) {
+        loadingBubble.innerHTML = `<strong>Trợ giảng Socratic:</strong><div class="markdown-body mt-1">${renderMarkdown(data.reply)}</div>`;
+      } else {
+        loadingBubble.innerHTML = `<strong>Lỗi:</strong> ${data.detail || 'Không nhận được phản hồi.'}`;
+      }
+    })
+    .catch(err => {
+      loadingBubble.innerHTML = `<strong>Lỗi kết nối:</strong> ${err.message}`;
+    })
+    .finally(() => {
+      list.scrollTop = list.scrollHeight;
+    });
+}
+
+
+// =========================================================================
+// ================= CHATBOT 2: FEYNMAN REVERSE-ROLE AGENT =================
+// =========================================================================
+
+async function startFeynmanChat() {
+  if (!currentStudentPack) {
+    alert("Vui lòng chọn bài học trước!");
+    return;
+  }
+
+  const list = document.getElementById('feynman-messages-list');
+  const container = document.getElementById('feynman-chat-container');
+
+  if (list) list.innerHTML = '<div class="msg-bubble msg-ai"><em>Đang khởi tạo Học sinh AI tò mò...</em></div>';
+  if (container) container.hidden = false;
+
+  try {
+    const res = await fetch('/api/student/chat/feynman/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lesson_code: currentStudentPack.lesson_code,
+      }),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.session_id) {
+      activeFeynmanSessionId = data.session_id;
+      if (list) {
+        list.innerHTML = `
+          <div class="msg-bubble msg-ai">
+            <strong>Học sinh AI (Tò mò):</strong><br>
+            ${escapeHtml(data.initial_message).replace(/\n/g, '<br>')}
+          </div>
+        `;
+      }
+    } else {
+      if (list) list.innerHTML = `<div class="msg-bubble msg-ai text-danger">Lỗi: ${data.detail || 'Không thể khởi tạo.'}</div>`;
+    }
+
+  } catch (err) {
+    if (list) list.innerHTML = `<div class="msg-bubble msg-ai text-danger">Lỗi kết nối: ${err.message}</div>`;
+  }
+}
+
+function handleFeynmanChatSubmit(e) {
+  e.preventDefault();
+
+  const inputEl = document.getElementById('feynman-input');
+  const list = document.getElementById('feynman-messages-list');
+  const btnSend = document.getElementById('btn-send-feynman');
+  const studentAnswer = inputEl ? inputEl.value.trim() : '';
+
+  if (!studentAnswer || !activeFeynmanSessionId || !currentStudentPack) return;
+
+  const userBubble = document.createElement('div');
+  userBubble.className = 'msg-bubble msg-user';
+  userBubble.innerHTML = `<strong>Thầy giáo (Bạn):</strong><br>${escapeHtml(studentAnswer).replace(/\n/g, '<br>')}`;
+  if (list) list.appendChild(userBubble);
+
+  if (inputEl) inputEl.value = '';
+  if (list) list.scrollTop = list.scrollHeight;
+
+  const aiBubble = document.createElement('div');
+  aiBubble.className = 'msg-bubble msg-ai';
+  aiBubble.innerHTML = '<em>Học sinh AI đang lắng nghe và suy ngẫm...</em>';
+  if (list) list.appendChild(aiBubble);
+  if (list) list.scrollTop = list.scrollHeight;
+
+  if (btnSend) btnSend.disabled = true;
+
+  fetch('/api/student/chat/feynman/respond', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      session_id: activeFeynmanSessionId,
+      lesson_code: currentStudentPack.lesson_code,
+      student_answer: studentAnswer,
+    }),
+  })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (ok && data.reply) {
+        aiBubble.innerHTML = `<strong>Học sinh AI (Tò mò):</strong><div class="markdown-body mt-1">${renderMarkdown(data.reply)}</div>`;
+      } else {
+        aiBubble.innerHTML = `<strong>Lỗi:</strong> ${data.detail || 'Không nhận được phản hồi.'}`;
+      }
+    })
+    .catch(err => {
+      aiBubble.innerHTML = `<strong>Lỗi kết nối:</strong> ${err.message}`;
+    })
+    .finally(() => {
+      if (btnSend) btnSend.disabled = false;
+      if (list) list.scrollTop = list.scrollHeight;
+    });
+}
+
+
+// =========================================================================
+// ======================== INITIAL DOM EVENT LOADER =======================
+// =========================================================================
+
 document.addEventListener('DOMContentLoaded', () => {
+  console.log("🚀 10M Study Pack Web App initialized.");
+
+  // File Upload listener
+  const pdfFileInput = document.getElementById('pdf-file');
+  const fileSelectedName = document.getElementById('file-selected-name');
+  if (pdfFileInput && fileSelectedName) {
+    pdfFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        fileSelectedName.textContent = `📄 File đã chọn: ${e.target.files[0].name} (${(e.target.files[0].size / 1024 / 1024).toFixed(2)} MB)`;
+        fileSelectedName.hidden = false;
+      }
+    });
+  }
+
+  // Teacher Upload Form
+  const teacherUploadForm = document.getElementById('teacher-upload-form');
+  if (teacherUploadForm) {
+    teacherUploadForm.addEventListener('submit', handleTeacherUpload);
+  }
+
+  // Student Select Form
+  const studentLessonForm = document.getElementById('student-lesson-form');
+  if (studentLessonForm) {
+    studentLessonForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const selectEl = document.getElementById('student-lesson-select');
+      const lessonCode = selectEl ? selectEl.value : '';
+      if (!lessonCode) {
+        alert("Vui lòng chọn một bài học!");
+        return;
+      }
+      openStudentStudyPack(lessonCode);
+    });
+  }
+
+  // Quiz Submit Form
+  const quizForm = document.getElementById('quiz-form');
+  if (quizForm) {
+    quizForm.addEventListener('submit', handleQuizSubmit);
+  }
+
+  // Socratic Chat Form
+  const socraticChatForm = document.getElementById('socratic-chat-form');
+  if (socraticChatForm) {
+    socraticChatForm.addEventListener('submit', handleSocraticChatSubmit);
+  }
+
+  // Feynman Chat Form
+  const feynmanChatForm = document.getElementById('feynman-chat-form');
+  if (feynmanChatForm) {
+    feynmanChatForm.addEventListener('submit', handleFeynmanChatSubmit);
+  }
+
+  // Initial Load of Lessons
   loadTeacherLessons();
+  loadPublishedLessonsForStudent();
 });
