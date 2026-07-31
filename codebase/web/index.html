@@ -9,8 +9,20 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230c61b7'/%3E%3Cpath d='M18 22c3-6 10-9 17-7 7 2 12 8 12 15s-5 14-12 16c-7 2-15-1-18-8' fill='none' stroke='%2371e4ef' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='22' r='5' fill='white'/%3E%3Ccircle cx='17' cy='38' r='5' fill='white'/%3E%3Ccircle cx='46' cy='31' r='5' fill='white'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body data-dashboard="learner">
   <a class="skip-link" href="#setup">Bỏ qua đến phần tạo Study Pack</a>
+
+  <section id="access-gate" class="access-gate" hidden aria-labelledby="access-title">
+    <form id="access-form" class="access-card">
+      <p class="eyebrow">Dữ liệu khóa học được bảo vệ</p>
+      <h2 id="access-title">Nhập mã truy cập</h2>
+      <p>Transcript chỉ dành cho người được phép trong phạm vi hackathon. Mã chỉ được giữ trong tab trình duyệt này.</p>
+      <label for="access-token">Mã truy cập</label>
+      <input id="access-token" name="access-token" type="password" minlength="24" autocomplete="current-password" required>
+      <button class="review-button primary" type="submit">Mở Study Pack</button>
+      <p id="access-message" class="review-message error" aria-live="polite"></p>
+    </form>
+  </section>
 
   <header class="site-header">
     <div class="header-inner">
@@ -26,6 +38,11 @@
         <a href="#process">Cách hoạt động</a>
         <a href="#setup">Tạo Study Pack</a>
       </nav>
+
+      <div class="dashboard-switch" role="group" aria-label="Chọn giao diện">
+        <button type="button" data-dashboard="learner" aria-pressed="true">Học viên</button>
+        <button type="button" data-dashboard="teacher" aria-pressed="false">Giảng viên</button>
+      </div>
 
       <a class="header-cta" href="#setup">
         Bắt đầu ôn
@@ -188,6 +205,7 @@
         </div>
         <p>Chọn đúng nguồn học. Study Pack hiện tập trung vào một mục tiêu duy nhất: ôn quiz trong 10 phút.</p>
       </div>
+      <p id="dashboard-notice" class="dashboard-notice" aria-live="polite"></p>
 
       <div class="workbench">
         <div class="workbench-guide">
@@ -254,19 +272,42 @@
 
       <div id="warnings" class="warnings" hidden></div>
 
-      <section class="pack-section">
+      <section id="review-panel" class="review-panel" aria-labelledby="review-title">
+        <div class="review-summary">
+          <div>
+            <p class="review-kicker">Human-in-the-loop · Giảng viên kiểm duyệt</p>
+            <h3 id="review-title">Đây là bản nháp AI, chưa phát hành</h3>
+            <p id="review-progress">Kiểm tra câu hỏi, đáp án và citation trước khi phê duyệt.</p>
+          </div>
+          <span id="review-status" class="review-status draft">Bản nháp AI</span>
+        </div>
+        <div class="review-actions">
+          <button id="toggle-edit" class="review-button secondary" type="button">Chỉnh sửa câu hỏi</button>
+          <button id="save-review" class="review-button secondary" type="button" disabled>Lưu bản nháp</button>
+          <button id="approve-review" class="review-button primary" type="button">Phê duyệt Study Pack</button>
+        </div>
+        <p id="review-message" class="review-message" aria-live="polite"></p>
+      </section>
+
+      <section id="key-points-section" class="pack-section learner-notes">
         <div class="section-label"><span>02</span><h3>Ý trọng tâm</h3></div>
         <ol id="key-points" class="key-points"></ol>
       </section>
 
-      <section class="pack-section keyword-section">
+      <section id="keywords-section" class="pack-section keyword-section learner-notes">
         <div class="section-label"><span>03</span><h3>Keyword cần nhớ</h3></div>
         <div id="keywords" class="keywords"></div>
       </section>
 
       <section class="pack-section">
         <div class="section-label"><span>04</span><h3>Active recall</h3></div>
-        <div id="questions" class="questions"></div>
+        <div>
+          <p class="recall-intro">Tự trả lời trước khi đối chiếu. AI so khớp linh hoạt với đáp án và đoạn citation đã duyệt; điểm chỉ phản ánh lượt ôn hiện tại.</p>
+          <div id="questions" class="questions"></div>
+          <button id="add-question" class="add-question-button" type="button" hidden>
+            <span aria-hidden="true">＋</span> Thêm câu hỏi
+          </button>
+        </div>
       </section>
     </section>
   </main>
@@ -293,28 +334,66 @@
     <p id="citation-warning" class="citation-warning" hidden>Nguồn có đoạn [không nghe rõ], cần kiểm tra bản gốc.</p>
   </dialog>
 
+  <dialog id="regenerate-dialog" class="regenerate-dialog">
+    <div class="dialog-accent" aria-hidden="true"></div>
+    <button id="close-regenerate-dialog" class="dialog-close" type="button" aria-label="Đóng">×</button>
+    <p class="eyebrow">Tạo lại riêng một câu bằng model thật</p>
+    <h2>Giảng viên muốn điều chỉnh gì?</h2>
+    <p class="dialog-description">Câu mới vẫn phải dựa trên transcript và vượt qua kiểm tra citation.</p>
+    <label for="regenerate-instruction">Yêu cầu biên tập</label>
+    <textarea id="regenerate-instruction" maxlength="500" rows="4" placeholder="Ví dụ: hỏi theo hướng áp dụng, tránh lặp lại định nghĩa..."></textarea>
+    <div class="regenerate-options">
+      <div>
+        <label for="question-type">Loại câu hỏi</label>
+        <select id="question-type">
+          <option value="recall">Nhớ lại</option>
+          <option value="explain" selected>Giải thích</option>
+          <option value="apply">Áp dụng</option>
+        </select>
+      </div>
+      <div>
+        <label for="question-difficulty">Độ khó</label>
+        <select id="question-difficulty">
+          <option value="easy">Cơ bản</option>
+          <option value="medium" selected>Vừa</option>
+          <option value="hard">Nâng cao</option>
+        </select>
+      </div>
+    </div>
+    <button id="confirm-regenerate" class="review-button primary dialog-submit" type="button">Tạo câu thay thế</button>
+  </dialog>
+
   <template id="question-template">
     <article class="question-card">
       <div class="question-number"></div>
       <h4></h4>
+      <div class="question-review-actions" hidden>
+        <button type="button" data-action="move-up" aria-label="Đưa câu lên">↑</button>
+        <button type="button" data-action="move-down" aria-label="Đưa câu xuống">↓</button>
+        <button type="button" data-action="regenerate">Tạo lại câu</button>
+        <button type="button" data-action="delete" class="danger">Xóa</button>
+      </div>
       <button class="reveal-button" type="button" aria-expanded="false">Hiện đáp án</button>
+      <div class="question-editor" hidden>
+        <label>Câu hỏi
+          <textarea class="question-input" rows="3" maxlength="1000"></textarea>
+        </label>
+        <label>Đáp án
+          <textarea class="answer-input" rows="4" maxlength="3000"></textarea>
+        </label>
+        <label>Citation
+          <input class="citations-input" type="text" maxlength="200" placeholder="T10-001, T10-002">
+        </label>
+        <small>Nhập các mã đoạn, phân cách bằng dấu phẩy. Hệ thống sẽ kiểm tra trước khi lưu.</small>
+      </div>
       <div class="answer" hidden>
         <p></p>
         <div class="citation-list"></div>
-        <div class="feedback-row">
-          <span>Đáp án chưa ổn?</span>
-          <button class="feedback-button" type="button" aria-expanded="false">Gửi phản hồi</button>
-        </div>
-        <div class="feedback-reasons" hidden>
-          <button type="button">Sai nguồn</button>
-          <button type="button">Không trọng tâm</button>
-          <button type="button">Quá khó</button>
-          <small>Phản hồi chỉ được giữ trong phiên prototype này.</small>
-        </div>
       </div>
     </article>
   </template>
 
+  <script src="/recall_session.js" defer></script>
   <script src="/app.js" defer></script>
 </body>
 </html>
