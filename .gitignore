@@ -6,3 +6,11 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 codebase/traces/
+
+# Protected hackathon data stays local and must never enter submission commits.
+/data/vlearn-pack/
+/data/study-pack-corpus/
+
+# Full model outputs may contain reconstructable protected content.
+/eval/private-results/
+/validation/private-logs/

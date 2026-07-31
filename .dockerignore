@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+*.env
+venv/
+node_modules/
+__pycache__/
+.pytest_cache/
+codebase/traces/
+eval/private-results/
+validation/private-logs/
+data/vlearn-pack/
+data/study-pack-corpus/
